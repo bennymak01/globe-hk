@@ -1,8 +1,15 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to Vercel
 
-# Deploys the Astro build to Cloudflare Pages.
-# Requires repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
-# Until the Astro app exists (no package.json) the job exits cleanly so CI stays green.
+# Builds the Astro site and deploys to Vercel.
+# Until package.json exists the job exits cleanly.
+#
+# Required repo secrets:
+#   VERCEL_TOKEN      – from https://vercel.com/account/tokens
+#   VERCEL_ORG_ID     – from project Settings → General → "Project ID" section
+#   VERCEL_PROJECT_ID – from project Settings → General → "Project ID"
+#
+# To get the IDs run inside the repo after `vercel link`:
+#   cat .vercel/project.json
 
 on:
   push:
@@ -12,20 +19,20 @@ on:
       - 'src/**'
       - 'public/**'
       - 'astro.config.*'
+      - 'vercel.json'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: deploy-pages
+  group: deploy-vercel
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,10 +61,12 @@ jobs:
         if: steps.check.outputs.found == 'true'
         run: npm run build
 
-      - name: Deploy
+      - name: Deploy to Vercel
         if: steps.check.outputs.found == 'true'
-        uses: cloudflare/wrangler-action@v3
+        uses: amondnet/vercel-action@v25
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=globe-hk
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./

@@ -10,13 +10,13 @@ PROJECT_BRIEF.md          # the design brief Claude Code works from
 globe-demo.html           # self-contained one-page demo (visual spec)
 scripts/bootstrap.sh      # auth + remote + first push
 scripts/sync-catalogue.mjs# catalogue scraper (run by the workflow)
-src/content/products/     # one markdown file per globe SKU  (Astro content collection)
+src/content/products/     # one markdown file per globe SKU (Astro content collection)
 public/products/          # product images downloaded by the workflow
 ```
 
 ## Stack
-- Astro (static-first) + Cloudflare Pages
-- GitHub Actions: `sync-catalogue` (weekly + manual), `deploy` (on push to main)
+- Astro (static-first) + **Vercel**
+- GitHub Actions: `sync-catalogue` (weekly + manual), `deploy-vercel` (on push to main)
 
 ## Design tokens
 | Token | Value | Use |
@@ -39,6 +39,18 @@ gh auth setup-git
 bash scripts/bootstrap.sh
 ```
 
+## Vercel deploy
+Add these repo secrets at **Settings → Secrets and variables → Actions**:
+- `VERCEL_TOKEN` — https://vercel.com/account/tokens
+- `VERCEL_ORG_ID` — project Settings → General → "Project ID" section
+- `VERCEL_PROJECT_ID` — same place
+
+To find the IDs locally (after installing Vercel CLI):
+```bash
+npx vercel@latest link
+# then read:  cat .vercel/project.json
+```
+
 ## Catalogue sync
 ```bash
 gh workflow run sync-catalogue.yml        # manual
@@ -47,7 +59,6 @@ gh workflow run sync-catalogue.yml -f limit=10
 Requires `scripts/sync-catalogue.mjs` (Playwright scraper) — see PROJECT_BRIEF §5.
 The source site blocks hotlinking, so images are downloaded and committed into `public/products/`.
 
-## Deploy
-Add repo secrets:
-- `CLOUDFLARE_API_TOKEN` (Pages deploy token)
-- `CLOUDFLARE_ACCOUNT_ID`
+## GitHub Pages (fallback)
+If you ever need a second host, `.github/workflows/deploy-pages.yml` deploys to GitHub Pages.
+Requires the repo to be **public** (free plan limitation).
