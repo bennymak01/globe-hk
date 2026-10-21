@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Globe.hk — 香港地球儀專門店｜學習地球儀・AR智能地球儀</title>
+<meta name="description" content="志成文具 1984 傾力打造：香港地球儀專門店。教育學習地球儀、AR智能互動地球儀、燈光擺設地球儀。旺角實店・全港送貨。">
+<style>
+  :root{
+    --navy:#0B1E33; --navy-2:#12294a; --ivory:#FAF6EE; --amber:#F2A93B; --amber-2:#ffc361;
+    --teal:#1E6E8C; --ink:#14202B; --muted:#5A6B78; --card:#ffffff;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:var(--ink);background:var(--ivory);line-height:1.6}
+  h1,h2,h3{font-family:'Noto Serif TC','PMingLiU',serif}
+  a{text-decoration:none;color:inherit}
+  img{max-width:100%}
+
+  /* ===== NAV ===== */
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:2rem;
+    padding:.9rem 5vw;background:rgba(11,30,51,.85);backdrop-filter:blur(12px);color:#fff;transition:all .4s var(--ease)}
+  nav.scrolled{background:rgba(11,30,51,.97);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  .logo{font-size:1.25rem;font-weight:700;letter-spacing:.05em}
+  .logo span{color:var(--amber)}
+  nav ul{display:flex;gap:1.8rem;list-style:none;margin-left:auto;font-size:.95rem}
+  nav a.navlink{position:relative;padding:.2rem 0;opacity:.85;transition:opacity .3s}
+  nav a.navlink::after{content:'';position:absolute;left:0;bottom:-2px;width:0;height:2px;background:var(--amber);transition:width .35s var(--ease)}
+  nav a.navlink:hover{opacity:1}
+  nav a.navlink:hover::after{width:100%}
+  .nav-cta{background:var(--amber);color:var(--navy);padding:.5rem 1.2rem;border-radius:99px;font-weight:700;
+    transition:transform .3s var(--ease), box-shadow .3s var(--ease)}
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(242,169,59,.4)}
+
+  /* ===== HERO ===== */
+  header.hero{min-height:100vh;background:radial-gradient(1200px 600px at 70% 20%,var(--navy-2),var(--navy) 70%);
+    color:#fff;display:flex;align-items:center;overflow:hidden;position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:4vw;align-items:center;width:min(1200px,92vw);margin:0 auto;padding:8rem 0 5rem}
+  .kicker{display:inline-flex;align-items:center;gap:.6rem;background:rgba(242,169,59,.12);border:1px solid rgba(242,169,59,.4);
+    color:var(--amber-2);padding:.35rem 1rem;border-radius:99px;font-size:.85rem;letter-spacing:.1em;margin-bottom:1.4rem}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.2;font-weight:700}
+  .hero h1 em{font-style:normal;color:var(--amber);position:relative}
+  .hero p.lead{margin:1.4rem 0 2rem;color:#B9C7D6;max-width:34em;font-size:1.05rem}
+  .hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+  .btn{padding:.9rem 2rem;border-radius:99px;font-weight:700;transition:all .35s var(--ease);display:inline-block}
+  .btn-primary{background:linear-gradient(120deg,var(--amber),var(--amber-2));color:var(--navy);position:relative;overflow:hidden}
+  .btn-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);
+    transform:translateX(-110%);transition:transform .6s var(--ease)}
+  .btn-primary:hover::before{transform:translateX(110%)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(242,169,59,.35)}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,.35);color:#fff}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--amber);transform:translateY(-3px)}
+
+  /* CSS globe */
+  .globe-wrap{display:flex;justify-content:center;perspective:900px}
+  .globe{width:min(380px,70vw);aspect-ratio:1;border-radius:50%;position:relative;cursor:pointer;
+    background:
+      radial-gradient(circle at 32% 30%, #2f7fa8 0%, #1E6E8C 30%, #14496a 62%, #0a2a42 100%);
+    box-shadow:inset -30px -30px 80px rgba(0,0,20,.7), inset 18px 18px 50px rgba(180,230,255,.18),
+      0 30px 80px rgba(0,20,40,.6), 0 0 80px rgba(242,169,59,.25);
+    transform-style:preserve-3d;transition:transform .2s ease-out}
+  .globe::before{ /* continents — layered radial blobs, drifts like rotation */
+    content:'';position:absolute;inset:0;border-radius:50%;overflow:hidden;
+    background:
+      radial-gradient(18% 26% at 24% 32%, #57b06a 0 70%, transparent 71%),
+      radial-gradient(22% 16% at 46% 24%, #6fc27f 0 70%, transparent 71%),
+      radial-gradient(14% 30% at 62% 46%, #57b06a 0 70%, transparent 71%),
+      radial-gradient(10% 12% at 34% 58%, #4fa563 0 70%, transparent 71%),
+      radial-gradient(16% 14% at 55% 68%, #57b06a 0 70%, transparent 71%),
+      radial-gradient(8% 20% at 76% 30%, #4fa563 0 70%, transparent 71%);
+    filter:blur(.4px);
+    animation:drift 22s linear infinite;
+  }
+  .globe::after{ /* shine */
+    content:'';position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 30% 26%, rgba(255,255,255,.5), transparent 34%);
+    mix-blend-mode:screen;
+  }
+  .meridian{position:absolute;inset:-4%;border-radius:50%;border:1.5px solid rgba(242,169,59,.5);pointer-events:none;
+    box-shadow:0 0 12px rgba(242,169,59,.2)}
+  @keyframes drift{
+    from{background-position:0% 0,0% 0,0% 0,0% 0,0% 0,0% 0}
+    to{background-position:-160% 0,-160% 0,-160% 0,-160% 0,-160% 0,-160% 0}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .globe::before,.globe{animation:none!important;transition:none!important}
+  }
+
+  .trust{display:flex;gap:2.2rem;margin-top:2.6rem;flex-wrap:wrap}
+  .trust div{font-size:.85rem;color:#9FB2C4}
+  .trust b{display:block;color:#fff;font-size:1.05rem;font-weight:700}
+
+  /* ===== SECTIONS ===== */
+  section{padding:5.5rem 0}
+  .container{width:min(1200px,92vw);margin:0 auto}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 3.2rem}
+  .sec-head .eyebrow{color:var(--teal);letter-spacing:.2em;font-size:.8rem;font-weight:700;text-transform:uppercase}
+  .sec-head h2{font-size:clamp(1.7rem,3.4vw,2.4rem);margin:.5rem 0 .8rem}
+  .sec-head p{color:var(--muted)}
+
+  /* series tabs */
+  .tabs{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.6rem}
+  .tab{padding:.55rem 1.4rem;border-radius:99px;border:1.5px solid #d8d2c4;background:transparent;cursor:pointer;
+    font-size:.92rem;font-family:inherit;transition:all .3s var(--ease)}
+  .tab:hover{border-color:var(--teal);color:var(--teal);transform:translateY(-2px)}
+  .tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* ===== PRODUCT CARDS ===== */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.8rem}
+  .card{background:var(--card);border-radius:18px;overflow:hidden;box-shadow:0 4px 14px rgba(20,32,43,.07);
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease);position:relative}
+  .card:hover{transform:translateY(-10px);box-shadow:0 22px 44px rgba(30,110,140,.18)}
+  .card-img{height:210px;position:relative;overflow:hidden;
+    background:radial-gradient(circle at 35% 30%, #7ec4e2, #1E6E8C 75%)}
+  .card-img .mini-globe{position:absolute;width:150px;aspect-ratio:1;border-radius:50%;left:50%;top:50%;
+    transform:translate(-50%,-50%) scale(1);transition:transform .5s var(--ease);
+    background:radial-gradient(circle at 32% 30%, #9fdccf 0%, #3aa0a8 35%, #1c6a86 70%, #0d3c56 100%);
+    box-shadow:inset -14px -14px 40px rgba(0,10,30,.55), 0 10px 24px rgba(0,20,40,.35)}
+  .card-img .mini-globe::before{content:'';position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(20% 26% at 30% 34%, #77d08a 0 70%, transparent 71%),
+      radial-gradient(16% 18% at 52% 26%, #8fdca0 0 70%, transparent 71%),
+      radial-gradient(14% 24% at 60% 56%, #77d08a 0 70%, transparent 71%);
+    animation:drift 14s linear infinite}
+  .card:hover .mini-globe{transform:translate(-50%,-50%) scale(1.12) rotate(6deg)}
+  .badge{position:absolute;top:1rem;left:1rem;background:var(--amber);color:var(--navy);font-size:.72rem;
+    font-weight:700;padding:.25rem .7rem;border-radius:99px;letter-spacing:.05em;z-index:2;
+    transition:transform .4s var(--ease)}
+  .card:hover .badge{transform:scale(1.08)}
+  .card-body{padding:1.3rem 1.4rem 1.5rem}
+  .series-tag{font-size:.74rem;color:var(--teal);font-weight:700;letter-spacing:.1em}
+  .card-body h3{font-size:1.08rem;margin:.35rem 0 .5rem;transition:color .3s}
+  .card:hover h3{color:var(--teal)}
+  .price{font-size:1.25rem;font-weight:800;color:var(--ink)}
+  .price small{font-size:.8rem;color:var(--muted);font-weight:400}
+  .feat{display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0 1rem;
+    max-height:0;opacity:0;transform:translateY(8px);transition:all .45s var(--ease);overflow:hidden}
+  .card:hover .feat{max-height:80px;opacity:1;transform:translateY(0)}
+  .feat span{font-size:.72rem;background:var(--ivory);border:1px solid #e5ddcc;padding:.2rem .6rem;border-radius:6px;color:var(--muted)}
+  .card-cta{display:flex;align-items:center;justify-content:space-between}
+  .card-cta .go{font-size:.88rem;font-weight:700;color:var(--teal);display:inline-flex;align-items:center;gap:.4rem}
+  .card-cta .go i{transition:transform .35s var(--ease);font-style:normal}
+  .card:hover .go i{transform:translateX(6px)}
+
+  /* ===== WHY US ===== */
+  .why{background:var(--navy);color:#fff}
+  .why .sec-head h2{color:#fff}
+  .why .sec-head p{color:#9FB2C4}
+  .why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.6rem}
+  .why-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:2rem 1.6rem;
+    transition:all .4s var(--ease)}
+  .why-item:hover{transform:translateY(-8px);background:rgba(242,169,59,.09);border-color:rgba(242,169,59,.4)}
+  .why-item .ico{font-size:1.8rem;margin-bottom:.8rem}
+  .why-item h3{font-size:1.05rem;margin-bottom:.4rem;color:var(--amber-2)}
+  .why-item p{font-size:.88rem;color:#B9C7D6}
+
+  /* ===== GUIDE CTA ===== */
+  .guide-strip{background:linear-gradient(120deg,var(--teal),#155a74);color:#fff;border-radius:24px;padding:3rem 3rem;
+    display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease)}
+  .guide-strip:hover{transform:translateY(-5px);box-shadow:0 24px 50px rgba(30,110,140,.35)}
+
+  /* ===== FOOTER ===== */
+  footer{background:var(--ink);color:#8fa0ae;padding:3.5rem 0 2rem;font-size:.88rem}
+  footer .container{display:grid;grid-template-columns:2fr 1fr 1fr;gap:2.5rem}
+  footer h4{color:#fff;font-size:.95rem;margin-bottom:1rem;font-family:inherit}
+  footer a{transition:color .3s}footer a:hover{color:var(--amber)}
+  .copy{text-align:center;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.08);font-size:.78rem;color:#5d6d7a}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a class="logo" href="#">🌍 Globe<span>.hk</span></a>
+  <ul>
+    <li><a class="navlink" href="#products">全部地球儀</a></li>
+    <li><a class="navlink" href="#series">分類</a></li>
+    <li><a class="navlink" href="#why">關於志成</a></li>
+    <li><a class="navlink" href="#guide">選購指南</a></li>
+  </ul>
+  <a class="nav-cta" href="#contact">WhatsApp 訂購</a>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">✦ 志成文具 1984 · 旺角實店</div>
+      <h1>香港地球儀專門店<br>俾小朋友<em>摸住個世界</em>學習</h1>
+      <p class="lead">由 8 吋學習版到 23cm AR 智能互動地球儀，繁體中文・中英對照・發光燈飾款一應俱全。實店四十年，專揀啱香港家長同學校需要的地球儀。</p>
+      <div class="hero-btns">
+        <a class="btn btn-primary" href="#products">瀏覽全部地球儀 →</a>
+        <a class="btn btn-ghost" href="#guide">點揀地球揀地球儀？睇指南</a>
+      </div>
+      <div class="trust">
+        <div><b>40+ 年</b>志成文具信譽</div>
+        <div><b>旺角門市</b>親眼看貨</div>
+        <div><b>全港送貨</b>易碎包裝</div>
+      </div>
+    </div>
+    <div class="globe-wrap">
+      <div class="globe" id="globe"><div class="meridian"></div></div>
+    </div>
+  </div>
+</header>
+
+<section id="products">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Collections</div>
+      <h2>四大系列・總有一款啱你</h2>
+      <p>由幼稚園第一個地球儀，到辦公室擺設級工藝品。</p>
+    </div>
+    <div class="tabs reveal" id="tabs">
+      <button class="tab active">全部</button>
+      <button class="tab">🎓 教育學習款</button>
+      <button class="tab">📱 AR 智能款</button>
+      <button class="tab">💡 燈光發光款</button>
+      <button class="tab">🏠 擺設工藝款</button>
+    </div>
+    <div class="grid" id="grid">
+      <!-- demo cards; Claude Code: 產生自 products content collection -->
+      <a class="card reveal" href="#">
+        <div class="card-img"><span class="badge">🆕 熱賣</span><div class="mini-globe"></div></div>
+        <div class="card-body">
+          <div class="series-tag">AR 智能款</div>
+          <h3>智能 AR 互動地球儀 23cm 高清學習版（發光・USB充電）</h3>
+          <div class="price">$468 <small>HKD</small></div>
+          <div class="feat"><span>14大AR主題</span><span>恐龍・星體・天氣</span><span>英文版</span></div>
+          <div class="card-cta"><span class="go">查看詳情 <i>→</i></span></div>
+        </div>
+      </a>
+      <a class="card reveal" href="#">
+        <div class="card-img"><span class="badge">校訂首選</span><div class="mini-globe"></div></div>
+        <div class="card-body">
+          <div class="series-tag">教育學習款</div>
+          <h3>繁體中文地球儀 12吋 大字體版（中英文對照）</h3>
+          <div class="price">$198 <small>HKD</small></div>
+          <div class="feat"><span>高清印刷</span><span>政區清晰</span><span>銀色底座</span></div>
+          <div class="card-cta"><span class="go">查看詳情 <i>→</i></span></div>
+        </div>
+      </a>
+      <a class="card reveal" href="#">
+        <div class="card-img"><span class="badge">送禮之選</span><div class="mini-globe"></div></div>
+        <div class="card-body">
+          <div class="series-tag">燈光發光款</div>
+          <h3>發光地球儀 10吋 夜燈款（木質底座）</h3>
+          <div class="price">$288 <small>HKD</small></div>
+          <div class="feat"><span>暖光夜燈</span><span>實木底座</span><span>兒童房首選</span></div>
+          <div class="card-cta"><span class="go">查看詳情 <i>→</i></span></div>
+        </div>
+      </a>
+      <a class="card reveal" href="#">
+        <div class="card-img"><div class="mini-globe"></div></div>
+        <div class="card-body">
+          <div class="series-tag">擺設工藝款</div>
+          <h3>復古藍色海洋地球儀 8吋（金屬弧邊底座）</h3>
+          <div class="price">$238 <small>HKD</small></div>
+          <div class="feat"><span>辦公擺設</span><span>典雅復古</span><span>櫃檯陳列</span></div>
+          <div class="card-cta"><span class="go">查看詳情 <i>→</i></span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="why" id="why">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Why Globe.hk</div>
+      <h2>點解喺我哋度買地球儀？</h2>
+      <p>唔係一個雜貨頁面，係一間專門店。</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-item reveal"><div class="ico">🏫</div><h3>專門店級挑選</h3><p>只賣地球儀，每一款親自驗貨：字體清晰度、底座穩陣度、印刷準確度。</p></div>
+      <div class="why-item reveal"><div class="ico">📖</div><h3>繁體中文本地化</h3><p>香港學生讀繁體。唔會俾你簡體字版地球儀，全部繁中或中英對照。</p></div>
+      <div class="why-item reveal"><div class="ico">🏬</div><h3>旺角實店 1984</h3><p>志成文具四十多年老字號，門市親眼看貨先買，信心保證。</p></div>
+      <div class="why-item reveal"><div class="ico">📦</div><h3>全港送貨・防碎包裝</h3><p>地球儀易碎？我哋用專業防碎包裝，全港送貨到會。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="guide">
+  <div class="container">
+    <div class="guide-strip reveal">
+      <div>
+        <div style="font-size:.78rem;letter-spacing:.2em;opacity:.8">BUYING GUIDE</div>
+        <h2 style="font-size:1.6rem;margin:.3rem 0">唔知點揀？3分鐘選購指南</h2>
+        <p style="opacity:.85;font-size:.92rem">尺寸點分？中英文定純繁中？AR 值唔值買？一次話你知。</p>
+      </div>
+      <a class="btn btn-primary" href="#">即刻睇指南 →</a>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="container">
+    <div>
+      <h4 style="color:var(--amber)">🌍 Globe.hk 香港地球儀專門店</h4>
+      <p>志成文具 CS Stationery（創立於 1984）旗下地球儀專門站。<br>學習・擺設・AR 智能，專注做好一件事。</p>
+    </div>
+    <div>
+      <h4>門市</h4>
+      <p>旺角分店（詳址待補）<br>星期一至日 營業時間待補</p>
+    </div>
+    <div>
+      <h4>訂購</h4>
+      <p><a href="#">WhatsApp 查詢訂購</a><br><a href="#">全部分類</a><br><a href="#">選購指南</a></p>
+    </div>
+  </div>
+  <div class="copy">© 2026 Globe.hk by CS Stationery 志成文具 · 香港地球儀專門店</div>
+</footer>
+
+<script>
+  // nav shrink
+  addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scrolled',scrollY>40)});
+
+  // globe parallax tilt toward mouse (lerped)
+  const globe=document.getElementById('globe');
+  let tx=0,ty=0,cx=0,cy=0;
+  addEventListener('mousemove',e=>{
+    tx=(e.clientX/innerWidth-.5)*18; ty=(e.clientY/innerHeight-.5)*-14;
+  });
+  (function loop(){cx+=(tx-cx)*.07;cy+=(ty-cy)*.07;
+    globe.style.transform=`rotateY(${cx}deg) rotateX(${cy}deg)`;
+    requestAnimationFrame(loop)})();
+  globe.addEventListener('click',()=>globe.style.setProperty('animation','none'));
+
+  // reveal on scroll
+  const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // tabs (demo filter)
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  }));
+</script>
+</body>
+</html>

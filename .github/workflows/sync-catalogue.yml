@@ -1,0 +1,68 @@
+name: Sync globe catalogue
+
+# Pulls the 地球儀 / globe product catalogue from csstationery.com + csstationery.hk
+# into src/content/products/*.md and downloads product images to public/products/.
+#
+# Why a workflow instead of a local script: the source site has hotlink/bot
+# protection, so requests come from a GitHub-hosted IP with a real browser
+# fingerprint (Playwright) rather than the local machine.
+#
+# Manual run: gh workflow run sync-catalogue.yml
+# Schedule:  Sundays 03:17 UTC (low-traffic hour, avoids the top of the hour)
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max products to sync per run (0 = all)"
+        required: false
+        default: "0"
+  schedule:
+    - cron: "17 3 * * 0"
+
+concurrency:
+  group: sync-catalogue
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Scrape catalogue
+        env:
+          SOURCE_URL: "https://csstationery.com/category/地球儀/"
+          FALLBACK_URL: "https://csstationery.hk"
+          LIMIT: ${{ github.event.inputs.limit || '0' }}
+        run: node scripts/sync-catalogue.mjs
+
+      - name: Commit changes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No catalogue changes."
+          else
+            git commit -m "chore(catalogue): sync globes from csstationery [skip ci]"
+            git push
+          fi
