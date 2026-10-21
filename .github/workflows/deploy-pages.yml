@@ -1,0 +1,79 @@
+name: Deploy to GitHub Pages
+
+# Publishes the static Astro build to GitHub Pages.
+#
+# Requires: Settings → Pages → Source = "GitHub Actions"
+#
+# NOTE: GitHub Pages on the free plan only serves PUBLIC repositories.
+# If bennymak01/globe-hk stays private, use deploy.yml (Cloudflare Pages) instead —
+# Cloudflare Pages deploys from a private repo without a paid GitHub plan.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'src/**'
+      - 'public/**'
+      - 'astro.config.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for Astro app
+        id: check
+        run: |
+          if [ -f package.json ]; then echo "found=true" >> "$GITHUB_OUTPUT"
+          else echo "found=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Skip (no Astro app yet)
+        if: steps.check.outputs.found != 'true'
+        run: echo "package.json not present — nothing to build yet."
+
+      - name: Setup Node
+        if: steps.check.outputs.found == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        if: steps.check.outputs.found == 'true'
+        run: npm ci || npm install
+
+      - name: Build
+        if: steps.check.outputs.found == 'true'
+        run: npm run build
+
+      - name: Setup Pages
+        if: steps.check.outputs.found == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        if: steps.check.outputs.found == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

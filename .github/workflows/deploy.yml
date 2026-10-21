@@ -1,7 +1,8 @@
 name: Deploy to Cloudflare Pages
 
-# Only runs once the Astro app exists (package.json present).
-# Until then this workflow is a no-op so CI stays green.
+# Deploys the Astro build to Cloudflare Pages.
+# Requires repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# Until the Astro app exists (no package.json) the job exits cleanly so CI stays green.
 
 on:
   push:
@@ -11,7 +12,6 @@ on:
       - 'src/**'
       - 'public/**'
       - 'astro.config.*'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,6 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ hashFiles('package.json') != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -31,18 +30,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for Astro app
+        id: check
+        run: |
+          if [ -f package.json ]; then echo "found=true" >> "$GITHUB_OUTPUT"
+          else echo "found=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Skip (no Astro app yet)
+        if: steps.check.outputs.found != 'true'
+        run: echo "package.json not present — nothing to deploy yet."
+
       - name: Setup Node
+        if: steps.check.outputs.found == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install dependencies
+        if: steps.check.outputs.found == 'true'
         run: npm ci || npm install
 
       - name: Build
+        if: steps.check.outputs.found == 'true'
         run: npm run build
 
       - name: Deploy
+        if: steps.check.outputs.found == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
