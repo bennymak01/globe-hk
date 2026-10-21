@@ -25,8 +25,10 @@ import { writeFile, mkdir, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-const SOURCE_URL = process.env.SOURCE_URL || 'https://csstationery.com/world-globe/';
+const SOURCE_URL = process.env.SOURCE_URL || 'https://csstationery.com/world-globe';
 const FALLBACK_URL = process.env.FALLBACK_URL || 'https://csstationery.hk';
+const CATEGORY_PATH = process.env.CATEGORY_PATH || '/world-globe/';
+const MAX_PAGES = Number(process.env.MAX_PAGES || 5);
 const LIMIT = Number(process.env.LIMIT || 0) || Infinity;
 const OUT_DIR = process.env.OUT_DIR || 'public/products';
 const CONTENT_DIR = process.env.CONTENT_DIR || 'src/content/products';
@@ -95,11 +97,15 @@ function yamlList(items) {
 
 /**
  * Scrape a listing page for product links.
- * WooCommerce stores use .woocommerce-loop-product__title a; csstationery.com
- * is WooCommerce-based, so we target that and fall back to any <a> that looks
- * like a product permalink.
+ *
+ * csstationery.com is Magento (not WooCommerce). Product detail URLs sit
+ * directly under the category path:  /world-globe/<slug>
+ * Category pages use ?page=N for pagination. We therefore:
+ *   1. take every <a> whose href starts with the category path
+ *   2. exclude the bare category URL and pagination variants
  */
 async function collectProductLinks(page) {
+  const base = await page.evaluate(() => location.origin);
   const links = await page.$$eval('a', (as) =>
     as.map((a) => ({
       href: a.href,
@@ -108,25 +114,26 @@ async function collectProductLinks(page) {
     }))
   );
 
-  const productish = links.filter(
-    (l) =>
-      l.href &&
-      /csstationery\.(com|hk)/.test(l.href) &&
-      l.text.length > 3 &&
-      (/\/product\//.test(l.href) ||
-        /product|globe|地球儀/i.test(l.cls) ||
-        /product/.test(l.href))
-  );
+  const productish = links.filter((l) => {
+    if (!l.href || !l.text || l.text.length < 3) return false;
+    if (!/\/world-globe\//.test(l.href)) return false;
+    // exclude the category itself and pagination links
+    if (/\/world-globe\/?(\?|$)/.test(l.href)) return false;
+    if (/\?page=/.test(l.href)) return false;
+    return true;
+  });
 
   const seen = new Set();
   return productish.filter((l) => {
-    if (seen.has(l.href)) return false;
-    seen.add(l.href);
+    const clean = l.href.split('#')[0];
+    if (seen.has(clean)) return false;
+    seen.add(clean);
+    l.href = clean;
     return true;
   });
 }
 
-/** Scrape one product page for its data. */
+/** Scrape one product page for its data (Magento DOM). */
 async function scrapeProduct(page, url) {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.waitForTimeout(1200);
@@ -136,43 +143,82 @@ async function scrapeProduct(page, url) {
     const meta = (name) =>
       document.querySelector(`meta[property="${name}"], meta[name="${name}"]`)?.content || '';
 
-    // WooCommerce summary / custom fields
-    const summary = t('.woocommerce-product-details__short_description') ||
-      t('#description') || t('.product_description');
-
-    // Gallery images: WooCommerce data attributes + <img> fallbacks
-    const imgs = new Set();
-    document.querySelectorAll('.woocommerce-product-gallery img, .product-gallery img').forEach((img) => {
-      const src = img.getAttribute('data-large_image') || img.getAttribute('data-src') || img.src;
-      if (src && !src.includes('placeholder')) imgs.add(src);
-    });
-    document.querySelectorAll('.summary img, .product img').forEach((img) => {
-      if (img.src && !img.src.includes('placeholder')) imgs.add(img.src);
-    });
-    if (meta('og:image')) imgs.add(meta('og:image'));
+    // Magento product page structure
+    const title = t('.page-title') || t('h1.page-title') || t('h1') || meta('og:title');
+    const summary =
+      t('.product attribute.description .value') ||
+      t('[data-product-attribute-description]') ||
+      t('#description') ||
+      t('.additional-attributes-wrapper');
 
     // Price
     const priceText =
-      t('.woocommerce-Price-amount') || t('.price') || meta('product:price:amount');
+      t('.price-wrapper .price') || t('.regular-price .price') || t('.price') || meta('product:price:amount');
 
-    // Stock / SKU
-    const sku = t('.sku_wrapper .sku') || t('.product_meta .sku') || '';
-    const stockText = t('.stock') || '';
+    // SKU
+    const sku =
+      t('.product attribute.sku .value') ||
+      t('[data-product-sku]') ||
+      t('.product-info-sku') ||
+      '';
+
+    // Availability
+    const stockText = t('.stock') || t('.product attribute.stock .value') || '';
+
+    // Colour / size swatch attributes
+    const attributes = {};
+    document.querySelectorAll('.product attribute .label').forEach((label) => {
+      const name = label.textContent.replace(/[:\s]+$/, '').trim();
+      const value = label.parentElement?.querySelector('.value')?.textContent?.trim();
+      if (name && value) attributes[name] = value;
+    });
+
+    // Gallery images — the product's OWN image only.
+    // The page also lists related products, so every candidate is matched
+    // against the product title (via alt/title) to avoid pulling in
+    // other products' photos.
+    const imgs = new Set();
+    const norm = (s) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const titleNorm = norm(title);
+
+    const pushIfMatches = (src, altText) => {
+      if (!src || src.includes('placeholder')) return;
+      const alt = norm(altText);
+      if (!alt) return;
+      // alt must share a meaningful prefix/substring with the title
+      if (alt === titleNorm || titleNorm.includes(alt) || alt.includes(titleNorm)) {
+        imgs.add(src);
+      }
+    };
+
+    document.querySelectorAll('img[data-largeimg], img[data-zoom-image]').forEach((img) => {
+      pushIfMatches(
+        img.getAttribute('data-zoom-image') || img.getAttribute('data-largeimg'),
+        img.getAttribute('alt') || img.getAttribute('title')
+      );
+    });
+
+    // 2x srcset gives the largest cached rendition of the same photo
+    document.querySelectorAll('img[srcset*="2x"]').forEach((img) => {
+      const twoX = (img.getAttribute('srcset') || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => / 2x$/.test(s))[0];
+      if (twoX) pushIfMatches(twoX.replace(/ 2x$/, ''), img.getAttribute('alt') || img.getAttribute('title'));
+    });
+
+    // og:image is always this product
+    if (meta('og:image')) imgs.add(meta('og:image'));
 
     // Feature bullets
     const features = [...document.querySelectorAll(
-      '.woocommerce-product-details__short_description li, .product_meta li, #description li'
-    )].map((li) => li.textContent.trim()).filter(Boolean).slice(0, 12);
+      '.product.attribute.description li, .additional-attributes-wrapper li, #description li'
+    )]
+      .map((li) => li.textContent.trim())
+      .filter(Boolean)
+      .slice(0, 12);
 
-    return {
-      title: t('.product_title') || t('h1') || meta('og:title'),
-      priceText,
-      summary,
-      sku,
-      stockText,
-      features,
-      images: [...imgs],
-    };
+    return { title, priceText, summary, sku, stockText, features, images: [...imgs], attributes };
   });
 
   return { url, ...data };
@@ -197,10 +243,30 @@ async function main() {
   await page.goto(SOURCE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForTimeout(1500);
 
-  let links = await collectProductLinks(page);
+  // Paginate the category listing: ?page=N
+  const allLinks = [];
+  for (let p = 1; p <= MAX_PAGES; p++) {
+    const target = p === 1 ? SOURCE_URL : `${SOURCE_URL}?page=${p}`;
+    if (p > 1) {
+      await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForTimeout(1200);
+    }
+    const links = await collectProductLinks(page);
+    if (!links.length) {
+      if (p === 1) console.log(`→ no links on page 1, trying fallback ${FALLBACK_URL}`);
+      break;
+    }
+    const fresh = links.filter((l) => !allLinks.some((x) => x.href === l.href));
+    if (!fresh.length) break; // no new products on this page → last page
+    allLinks.push(...fresh);
+    console.log(`→ page ${p}: ${fresh.length} new product links`);
+    if (allLinks.length >= LIMIT) break;
+  }
+
+  let links = allLinks;
 
   if (!links.length) {
-    console.log(`→ no links on primary source, falling back to ${FALLBACK_URL}`);
+    console.log(`→ falling back to ${FALLBACK_URL}`);
     await page.goto(FALLBACK_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(1500);
     links = await collectProductLinks(page);
@@ -235,6 +301,56 @@ async function main() {
 
   console.log(`→ writing ${products.length} products`);
 
+  // Images are downloaded with plain fetch.
+  //
+  // Playwright's apiRequestContext fails on this host (returns 404 for cached
+  // renditions that a normal browser fetch retrieves fine), so we use node's
+  // built-in fetch with browser-like headers instead.
+  const fetchImage = async (src, referer) => {
+    if (!src) return null;
+    try {
+      const res = await fetch(src, {
+        headers: {
+          'User-Agent': UA,
+          Referer: referer,
+          Accept: 'image/avif,image/webp,image/*,*/*;q=0.8',
+          'Accept-Language': 'zh-HK,zh;q=0.9,en;q=0.8',
+        },
+        redirect: 'follow',
+      });
+      if (!res.ok) return null;
+      const buf = Buffer.from(await res.arrayBuffer());
+      return buf.length > 1024 ? buf : null;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  /**
+   * Candidate URLs for one product image, best first.
+   *
+   * Magento stores images under /image/cache/catalog/<path>/<name>-<W>x<H>.<ext>.
+   * The original lives at /media/catalog/<path>/<name>.<ext>. Some originals
+   * were deleted upstream while a cached size still exists (and vice versa),
+   * so try several variants and take the first that returns bytes.
+   */
+  function imageCandidates(src) {
+    if (!src) return [];
+    const out = [src];
+    const m = src.match(/^(.*)\/([^/]+)-(\d+)x(\d+)([a-z]?)\.(jpg|jpeg|png|webp)$/i);
+    if (m) {
+      const [, dir, name, , , ext] = m;
+      for (const suffix of ['-1000x1000', '-800x800', '-600x600', '-550x550', '-500x500', '']) {
+        out.push(`${dir}/${name}${suffix}.${ext}`);
+      }
+      // original under /media/catalog/
+      const media = src.replace('/image/cache/catalog/', '/media/catalog/')
+        .replace(/-\d+x\d+[a-z]?\.(jpg|jpeg|png|webp)$/i, '.$1');
+      out.push(media);
+    }
+    return [...new Set(out)];
+  }
+
   for (const p of products) {
     const slug = slugify(p.title) || `globe-${Date.now()}`;
     const price = parsePrice(p.priceText);
@@ -251,16 +367,18 @@ async function main() {
       const safeExt = /^(jpg|jpeg|png|webp|avif)$/.test(ext) ? ext : 'jpg';
       const filename = `${slug}-${++imgIdx}.${safeExt}`;
       const dest = path.join(OUT_DIR, filename);
-      try {
-        const res = await ctx.request.get(src, { headers: { 'User-Agent': UA, Referer: p.url } });
-        if (res.ok()) {
-          const buf = await res.body();
+
+      let saved = false;
+      for (const candidate of imageCandidates(src)) {
+        const buf = await fetchImage(candidate, p.url);
+        if (buf) {
           await writeFile(dest, buf);
           localImages.push(`/products/${filename}`);
+          saved = true;
+          break;
         }
-      } catch (err) {
-        console.warn(`  ! image failed ${src} — ${err.message}`);
       }
+      if (!saved) console.warn(`  ! no image found for ${src}`);
     }
 
     const frontmatter = [
