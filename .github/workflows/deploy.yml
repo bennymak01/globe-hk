@@ -1,15 +1,29 @@
 name: Deploy to Cloudflare Pages
 
+# Only runs once the Astro app exists (package.json present).
+# Until then this workflow is a no-op so CI stays green.
+
 on:
   push:
     branches: [main]
+    paths:
+      - 'package.json'
+      - 'src/**'
+      - 'public/**'
+      - 'astro.config.*'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
 jobs:
   deploy:
+    if: ${{ hashFiles('package.json') != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

@@ -1,14 +1,14 @@
 name: Sync globe catalogue
 
-# Pulls the 地球儀 / globe product catalogue from csstationery.com + csstationery.hk
-# into src/content/products/*.md and downloads product images to public/products/.
+# Pulls the 地球儀 / globe product catalogue from csstationery.com into
+# src/content/products/*.md and downloads product images to public/products/.
 #
-# Why a workflow instead of a local script: the source site has hotlink/bot
+# Why a workflow and not a local script: the source site has hotlink/bot
 # protection, so requests come from a GitHub-hosted IP with a real browser
-# fingerprint (Playwright) rather than the local machine.
+# fingerprint (Playwright) instead of the local machine.
 #
 # Manual run: gh workflow run sync-catalogue.yml
-# Schedule:  Sundays 03:17 UTC (low-traffic hour, avoids the top of the hour)
+# Schedule:  Sundays 03:17 UTC (low-traffic hour)
 
 on:
   workflow_dispatch:
@@ -40,17 +40,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci || npm install
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright + Chromium
+        run: |
+          npm install --no-save playwright@1.49.1
+          npx playwright install --with-deps chromium
 
       - name: Scrape catalogue
         env:
-          SOURCE_URL: "https://csstationery.com/category/地球儀/"
+          SOURCE_URL: "https://csstationery.com/world-globe/"
           FALLBACK_URL: "https://csstationery.hk"
           LIMIT: ${{ github.event.inputs.limit || '0' }}
         run: node scripts/sync-catalogue.mjs
