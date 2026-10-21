@@ -4,7 +4,7 @@ name: Deploy to GitHub Pages
 #
 # Requires: Settings → Pages → Source = "GitHub Actions"
 #
-# NOTE: GitHub Pages on the free plan only serves PUBLIC repositories.
+# NOTE: GitHub Pages only serves PUBLIC repositories on the free plan.
 # If bennymak01/globe-hk stays private, use deploy.yml (Cloudflare Pages) instead —
 # Cloudflare Pages deploys from a private repo without a paid GitHub plan.
 
@@ -31,6 +31,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      found: ${{ steps.check.outputs.found }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +42,6 @@ jobs:
         run: |
           if [ -f package.json ]; then echo "found=true" >> "$GITHUB_OUTPUT"
           else echo "found=false" >> "$GITHUB_OUTPUT"; fi
-
-      - name: Skip (no Astro app yet)
-        if: steps.check.outputs.found != 'true'
-        run: echo "package.json not present — nothing to build yet."
 
       - name: Setup Node
         if: steps.check.outputs.found == 'true'
@@ -71,6 +69,7 @@ jobs:
 
   deploy:
     needs: build
+    if: needs.build.outputs.found == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
