@@ -1,7 +1,12 @@
 ---
+import { CONTACT, NAV, SITE, waLink } from '../data/site';
+import { getCart, cartCount, fmtPrice } from '../lib/cart';
 import '../styles/global.css';
+
 interface Props { title: string; description?: string }
-const { title, description = '香港地球儀專門店 — 學習地球儀、AR智能地球儀、燈光擺設款。志成文具 1984・旺角實店・全港送貨。' } = Astro.props;
+const { title, description = '香港地球儀專門店 — 學習地球儀、AR智能互動地球儀、燈光擺設款。志成文具 1984・旺角實店・全港送貨。' } = Astro.props;
+const path = Astro.url.pathname;
+const wa = waLink('你好，我想查詢地球儀。');
 ---
 <!DOCTYPE html>
 <html lang="zh-HK">
@@ -10,33 +15,148 @@ const { title, description = '香港地球儀專門店 — 學習地球儀、AR�
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={SITE.nameZh} />
+    <meta property="og:locale" content="zh_HK" />
+    <meta name="geo.region" content="HK" />
+    <meta name="geo.placename" content="旺角" />
+    <meta name="geo.position" content="22.3167;114.1694" />
+    <link rel="canonical" href={`${SITE.url}${path}`} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="alternate" type="text/plain" href={`${SITE.url}/llms.txt`} title="llms.txt" />
   </head>
   <body>
-    <slot />
+    <nav id="nav">
+      <a href="/" class="logo" aria-label="GlobeHK 首頁">🌍 Globe<span>HK</span></a>
+      <ul>
+        {NAV.map((n) => (
+          <li><a class={`navlink ${path === n.href ? 'active' : ''}`} href={n.href}>{n.label}</a></li>
+        ))}
+      </ul>
+      <div class="nav-actions">
+        <a href={wa} class="nav-wa" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="cart-btn" id="cart-btn" aria-label="查詢清單">
+          🛒<span class="cart-count" id="cart-count">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer id="contact">
+      <div class="container">
+        <div>
+          <h4 style="color:var(--amber)">🌍 {SITE.nameZh}</h4>
+          <p>
+            {SITE.legalName}（創立於 {SITE.established}）旗下地球儀專門站。<br/>
+            主理人：{SITE.author}<br/>
+            {CONTACT.addressLine1}，{CONTACT.district}，{CONTACT.area}，{CONTACT.country}
+          </p>
+          <p style="margin-top:.6rem">
+            <a href={wa} target="_blank" rel="noopener">WhatsApp {CONTACT.whatsappDisplay}</a><br/>
+            營業時間：{CONTACT.hours}
+          </p>
+        </div>
+        <div>
+          <h4>選購</h4>
+          <p>
+            <a href="/products/">全部地球儀</a><br/>
+            <a href="/products/#series">分類瀏覽</a><br/>
+            <a href="/cart/">查詢清單</a>
+          </p>
+        </div>
+        <div>
+          <h4>關於</h4>
+          <p>
+            <a href="/about/">關於志成</a><br/>
+            <a href="/blog/">選購指南</a><br/>
+            <a href="/contact/">聯絡我們</a><br/>
+            <a href={SITE.parentSite} target="_blank" rel="noopener">全部文具 →</a>
+          </p>
+        </div>
+      </div>
+      <div class="copy">
+        © 2026 {SITE.nameZh} by {SITE.legalName} Est. {SITE.established} · 主理人 {SITE.author} · 香港
+      </div>
+    </footer>
+
+    <!-- Cart drawer -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <aside class="drawer" id="drawer" aria-label="查詢清單">
+      <div class="drawer-head">
+        <h3>查詢清單</h3>
+        <button id="drawer-close" aria-label="關閉">✕</button>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+      <div class="drawer-foot">
+        <div class="drawer-total">合計 <strong id="drawer-total">$0</strong></div>
+        <a href="/cart/" class="btn btn-primary" style="width:100%;text-align:center">查看／填寫查詢表</a>
+      </div>
+    </aside>
+
     <script>
+      import { getCart, cartCount, cartTotal, fmtPrice, updateQty, removeFromCart } from '../lib/cart.ts';
+
+      const btn = document.getElementById('cart-btn');
+      const drawer = document.getElementById('drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      const body = document.getElementById('drawer-body');
+      const countEl = document.getElementById('cart-count');
+      const totalEl = document.getElementById('drawer-total');
+
+      function render() {
+        const items = getCart();
+        countEl.textContent = String(cartCount(items));
+        totalEl.textContent = fmtPrice(cartTotal(items));
+        if (!items.length) {
+          body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:2rem 0">未有加入任何地球儀<br/><a href="/products/" style="color:var(--teal)">去睇產品 →</a></p>';
+          return;
+        }
+        body.innerHTML = items.map((i) => `
+          <div class="drawer-item">
+            <div class="di-img">${i.image ? `<img src="${i.image}" alt="${i.name}"/>` : '🌍'}</div>
+            <div class="di-info">
+              <div class="di-name">${i.name}</div>
+              <div class="di-price">${fmtPrice(i.price)}</div>
+              <div class="di-qty">
+                <button data-dec="${i.id}">−</button>
+                <span>${i.qty}</span>
+                <button data-inc="${i.id}">＋</button>
+                <button data-rm="${i.id}" class="rm">移除</button>
+              </div>
+            </div>
+          </div>`).join('');
+      }
+
+      const open = () => { drawer.classList.add('open'); overlay.classList.add('on'); };
+      const close = () => { drawer.classList.remove('open'); overlay.classList.remove('on'); };
+
+      btn?.addEventListener('click', open);
+      document.getElementById('drawer-close')?.addEventListener('click', close);
+      overlay?.addEventListener('click', close);
+      addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+      body?.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        const inc = t.dataset.inc, dec = t.dataset.dec, rm = t.dataset.rm;
+        if (inc) { const i = getCart().find(x => x.id === inc)!; updateQty(inc, i.qty + 1); render(); }
+        if (dec) { const i = getCart().find(x => x.id === dec)!; updateQty(dec, i.qty - 1); render(); }
+        if (rm) { removeFromCart(rm); render(); }
+      });
+
+      addEventListener('cart:update', render);
+      addEventListener('storage', render);
+      render();
+
       // nav shrink
       const nav = document.getElementById('nav');
       addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 40));
-
-      // globe parallax tilt toward mouse (lerped)
-      const globe = document.getElementById('globe');
-      if (globe) {
-        let tx = 0, ty = 0, cx = 0, cy = 0;
-        addEventListener('mousemove', (e) => {
-          tx = (e.clientX / innerWidth - 0.5) * 18;
-          ty = (e.clientY / innerHeight - 0.5) * -14;
-        });
-        (function loop() {
-          cx += (tx - cx) * 0.07; cy += (ty - cy) * 0.07;
-          globe.style.transform = `rotateY(${cx}deg) rotateX(${cy}deg)`;
-          requestAnimationFrame(loop);
-        })();
-      }
 
       // reveal on scroll
       const io = new IntersectionObserver(
@@ -44,20 +164,6 @@ const { title, description = '香港地球儀專門店 — 學習地球儀、AR�
         { threshold: 0.12 }
       );
       document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
-
-      // series tabs filter
-      const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
-      const cards = document.querySelectorAll<HTMLElement>('.card[data-series]');
-      tabs.forEach((t) =>
-        t.addEventListener('click', () => {
-          tabs.forEach((x) => x.classList.remove('active'));
-          t.classList.add('active');
-          const f = t.dataset.filter || 'all';
-          cards.forEach((c) => {
-            c.style.display = f === 'all' || c.dataset.series === f ? '' : 'none';
-          });
-        })
-      );
     </script>
   </body>
 </html>

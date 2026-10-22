@@ -1,37 +1,28 @@
 ---
 import Base from '../layouts/Base.astro';
-import ProductCard from '../components/ProductCard.astro';
-import { getCollection } from 'astro:content';
+import { getProducts, sortProducts, langLabel } from '../lib/products';
+import { CONTACT, SERIES, SITE, waLink } from '../data/site';
 
-const products = (await getCollection('products')).sort((a, b) => a.data.priceHKD - b.data.priceHKD);
-const fmt = (n: number) => n ? `$${n}` : '查詢';
+const all = await getProducts();
+const featured = sortProducts(all).slice(0, 8);
+const wa = waLink('你好，我想查詢地球儀。');
 ---
-<Base title="Globe HK 地球儀專門店 | 香港學習地球儀・AR智能地球儀">
-  <nav id="nav">
-    <a href="/" class="logo">Globe<span>HK</span> 地球儀</a>
-    <ul>
-      <li><a class="navlink" href="#products">產品系列</a></li>
-      <li><a class="navlink" href="#why">為何選擇我們</a></li>
-      <li><a class="navlink" href="#guide">選購指南</a></li>
-      <li><a class="navlink" href="#contact">聯絡我們</a></li>
-    </ul>
-    <a href="#contact" class="nav-cta">即時查詢</a>
-  </nav>
-
+<Base title="GlobeHK 地球儀專門店 | 香港學習地球儀・AR智能地球儀・燈光擺設">
   <header class="hero">
     <div class="hero-grid">
       <div>
-        <span class="kicker">✦ 志成文具 1984 ・ 旺角實店</span>
+        <span class="kicker">✦ 主理人 Jack Mak ・ 志成文具 1984 ・ 旺角實店</span>
         <h1>把整個世界<em>帶回家</em><br/>香港地球儀專門店</h1>
         <p class="lead">
           由小朋友第一個學習地球儀，到 AR 智能互動地球儀、書房燈光擺設款 —
           四十年文具老號為你嚴選，實店睇貨，全港送貨。
         </p>
         <div class="hero-btns">
-          <a href="#products" class="btn btn-primary">瀏覽產品系列</a>
-          <a href="#guide" class="btn btn-ghost">選購指南 →</a>
+          <a href="/products/" class="btn btn-primary">瀏覽全部地球儀</a>
+          <a href="/blog/" class="btn btn-ghost">選購指南 →</a>
         </div>
         <div class="trust">
+          <div><b>{all.length}+</b>款現貨</div>
           <div><b>1984</b>創業四十年</div>
           <div><b>旺角</b>實店睇貨</div>
           <div><b>全港</b>送貨到門</div>
@@ -47,17 +38,34 @@ const fmt = (n: number) => n ? `$${n}` : '查詢';
     <div class="container">
       <div class="sec-head reveal">
         <div class="eyebrow">Products</div>
-        <h2>產品系列</h2>
-        <p>學習教育、智能互動、燈光擺設三大系列，總有一款啱你。</p>
+        <h2>精選地球儀</h2>
+        <p>學習教育、AR 智能、燈光擺設、工藝擺設四大系列，總有一款啱你。</p>
       </div>
-      <div class="tabs reveal">
-        <button class="tab active" data-filter="all">全部</button>
-        <button class="tab" data-filter="education">學習教育</button>
-        <button class="tab" data-filter="smart">AR 智能</button>
-        <button class="tab" data-filter="decor">燈光擺設</button>
+      <div class="product-grid">
+        {featured.map((p) => (
+          <article class="product-card reveal">
+            <a href={`/products/${p.slug}/`} class="pc-media">
+              {p.images.length
+                ? <img src={p.images[0]} alt={`${p.name} - ${SITE.nameZh}`} loading="lazy" width="400" height="400" />
+                : <div class="pc-placeholder">🌍</div>}
+            </a>
+            <div class="pc-body">
+              <div class="pc-series">{SERIES[p.series].icon} {SERIES[p.series].label}</div>
+              <h3><a href={`/products/${p.slug}/`}>{p.name}</a></h3>
+              <div class="pc-meta">
+                {p.size && <span>📏 {p.size}</span>}
+                <span>🌐 {langLabel(p.language)}</span>
+              </div>
+              <div class="pc-foot">
+                <span class="pc-price">{p.price ? `$${p.price.toLocaleString('zh-HK')}` : '查詢'}</span>
+                <a href={`/products/${p.slug}/`} class="pc-add">查看詳情</a>
+              </div>
+            </div>
+          </article>
+        ))}
       </div>
-      <div class="grid">
-        {products.map((p) => <ProductCard p={p.data} />)}
+      <div style="text-align:center;margin-top:2.5rem">
+        <a href="/products/" class="btn btn-primary">睇全部 {all.length} 款地球儀</a>
       </div>
     </div>
   </section>
@@ -66,13 +74,13 @@ const fmt = (n: number) => n ? `$${n}` : '查詢';
     <div class="container">
       <div class="sec-head reveal">
         <div class="eyebrow">Why Us</div>
-        <h2>為何選擇 Globe HK</h2>
+        <h2>為何選擇 GlobeHK</h2>
         <p>唔止賣地球儀 — 我哋識揀、識教、識修。</p>
       </div>
       <div class="why-grid">
-        <div class="why-item reveal"><div class="ico">🏫</div><h3>四十年文具老號</h3><p>志成文具由 1984 年開始服務香港學校同家庭，識得揀真正啱小朋友嘅教學地球儀。</p></div>
-        <div class="why-item reveal"><div class="ico">🛋️</div><h3>旺角實店睇貨</h3><p>網上看圖唔放心？歡迎嚟旺角門市親手轉一轉，比對尺寸同工藝。</p></div>
-        <div class="why-item reveal"><div class="ico">🚚</div><h3>全港送貨</h3><p>市區 $300 以上免運費，新界離島都可以安排，禮物包裝歡迎查詢。</p></div>
+        <div class="why-item reveal"><div class="ico">🏫</div><h3>四十年文具老號</h3><p>志成文具由 1984 年開始服務香港學校同家庭，主理人 Jack Mak 識得揀真正啱小朋友嘅教學地球儀。</p></div>
+        <div class="why-item reveal"><div class="ico">🛋️</div><h3>旺角實店睇貨</h3><p>網上看圖唔放心？歡迎嚟旺角界限街 12 號 C 地下親手轉一轉，比對尺寸同工藝。</p></div>
+        <div class="why-item reveal"><div class="ico">🚚</div><h3>全港送貨</h3><p>學校訂單可安排送貨到校，禮物包裝歡迎查詢，報價時一併確認運費。</p></div>
         <div class="why-item reveal"><div class="ico">🔧</div><h3>售後有保障</h3><p>燈光款壞咗燈、支架鬆咗？實店跟進維修，唔使怕買咗冇人理。</p></div>
       </div>
     </div>
@@ -83,9 +91,9 @@ const fmt = (n: number) => n ? `$${n}` : '查詢';
       <div class="guide-strip reveal">
         <div>
           <h2 style="margin-bottom:.4rem">唔知點揀？三分鐘地球儀選購指南</h2>
-          <p style="color:#D8EEF5">按年齡、用途、預算分清楚 — 學習、AR 互動、定係書房擺設？</p>
+          <p style="color:#D8EEF5">按用途、預算、語言分清楚 — 小學常識科教學、AR 互動，定係書房擺設？</p>
         </div>
-        <a href="https://globe-hk.vercel.app/guide" class="btn btn-primary">閱讀指南</a>
+        <a href="/blog/" class="btn btn-primary">閱讀指南</a>
       </div>
     </div>
   </section>
@@ -100,35 +108,17 @@ const fmt = (n: number) => n ? `$${n}` : '查詢';
       <div class="why-grid reveal">
         <div class="why-item" style="background:#fff;color:var(--ink);border-color:#e5ddcc">
           <div class="ico">📍</div><h3 style="color:var(--teal)">門市地址</h3>
-          <p style="color:var(--muted)">旺角（詳細地址請電詢）</p>
+          <p style="color:var(--muted)">{CONTACT.addressLine1}<br/>{CONTACT.district}，{CONTACT.area}</p>
         </div>
         <div class="why-item" style="background:#fff;color:var(--ink);border-color:#e5ddcc">
-          <div class="ico">📞</div><h3 style="color:var(--teal)">電話 / WhatsApp</h3>
-          <p style="color:var(--muted)">請填上實際聯絡方法</p>
+          <div class="ico">💬</div><h3 style="color:var(--teal)">WhatsApp</h3>
+          <p style="color:var(--muted)"><a href={wa} target="_blank" rel="noopener" style="color:var(--teal);font-weight:700">{CONTACT.whatsappDisplay}</a><br/>落單查詢最快回覆</p>
         </div>
         <div class="why-item" style="background:#fff;color:var(--ink);border-color:#e5ddcc">
           <div class="ico">🕒</div><h3 style="color:var(--teal)">營業時間</h3>
-          <p style="color:var(--muted)">請填上實際營業時間</p>
+          <p style="color:var(--muted)">{CONTACT.hours}</p>
         </div>
       </div>
     </div>
   </section>
-
-  <footer id="contact-footer">
-    <div class="container">
-      <div>
-        <h4>GlobeHK 地球儀專門店</h4>
-        <p>志成文具 CS Stationery（1984）旗下地球儀專頁。學習地球儀、AR 智能地球儀、燈光擺設款，實店睇貨，全港送貨。</p>
-      </div>
-      <div>
-        <h4>快速連結</h4>
-        <p><a href="#products">產品系列</a><br/><a href="#why">為何選擇我們</a><br/><a href="#guide">選購指南</a></p>
-      </div>
-      <div>
-        <h4>聯絡</h4>
-        <p>旺角實店<br/>WhatsApp：待填<br/>電郵：待填</p>
-      </div>
-    </div>
-    <div class="copy">© 2026 GlobeHK × 志成文具 CS Stationery Est. 1984</div>
-  </footer>
 </Base>

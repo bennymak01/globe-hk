@@ -1,0 +1,64 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { CONTACT, SITE, waLink } from '../../data/site';
+import '../../styles/shop.css';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((p) => ({ params: { slug: p.id.replace(/\.md$/, '') }, props: { post: p } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const all = await getCollection('blog');
+const others = all.filter((p) => p.id !== post.id).slice(0, 3);
+---
+<Base title={`${post.data.title} | ${SITE.nameZh}`} description={post.data.excerpt}>
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs">
+      <a href="/">首頁</a><span>›</span>
+      <a href="/blog/">選購指南</a><span>›</span>
+      <span>{post.data.title}</span>
+    </div>
+
+    <article class="prose">
+      <div style="font-size:.85rem;color:var(--teal);font-weight:600;margin-bottom:.6rem">
+        {post.data.date.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric' })}
+        {post.data.category && <span class="tag" style="margin-left:.6rem">{post.data.category}</span>}
+      </div>
+      <h1 style="font-size:clamp(1.8rem,4vw,2.4rem);line-height:1.35;margin-bottom:1rem">{post.data.title}</h1>
+      <p style="font-size:1.02rem;color:var(--muted);margin-bottom:2rem">{post.data.excerpt}</p>
+
+      <Content />
+    </article>
+
+    <div style="max-width:720px;margin:3rem auto 0;padding:2rem;background:var(--navy);color:#fff;border-radius:20px">
+      <h3 style="font-size:1.2rem;margin-bottom:.7rem">想要報價？</h3>
+      <p style="color:#B9C7D6;font-size:.92rem;margin-bottom:1.2rem">
+        旺角門市：{CONTACT.addressLine1} · 歡迎 WhatsApp 查詢庫存、批發價同送貨。
+      </p>
+      <a href={waLink('你好，我想查詢地球儀。')} class="buy-wa" target="_blank" rel="noopener" style="display:inline-block">
+        💬 WhatsApp {CONTACT.whatsappDisplay}
+      </a>
+    </div>
+
+    {others.length > 0 && (
+      <section style="padding:3rem 0">
+        <h2 style="font-size:1.4rem;margin-bottom:1.4rem">其他文章</h2>
+        <div class="post-grid">
+          {others.map((p) => (
+            <a class="post-card" href={`/blog/${p.id.replace(/\.md$/, '')}/`}>
+              <div class="pc-img">{p.data.icon || '🌍'}</div>
+              <div class="pc-body">
+                <div class="pc-date">{p.data.date.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <h3>{p.data.title}</h3>
+                <span class="pc-link">閱讀全文 <i>→</i></span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</Base>

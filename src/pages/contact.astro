@@ -1,0 +1,118 @@
+---
+import Base from '../layouts/Base.astro';
+import { CONTACT, SITE, waLink } from '../data/site';
+import '../styles/shop.css';
+
+const wa = waLink('你好，我想查詢地球儀。');
+const mapQuery = encodeURIComponent('香港九龍旺角界限街12號');
+---
+<Base title={`聯絡我們 | ${SITE.nameZh}`} description={`聯絡 ${SITE.nameZh}：旺角界限街 12 號 C 地下，WhatsApp ${CONTACT.whatsappDisplay}。歡迎到門市選購地球儀。`}>
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs"><a href="/">首頁</a><span>›</span>聯絡我們</div>
+
+    <div style="text-align:center;max-width:640px;margin:0 auto 3rem">
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);margin-bottom:.8rem">聯絡我們</h1>
+      <p style="color:var(--muted)">
+        最快嘅方法係直接 WhatsApp 我哋。如果你想親身睇地球儀，旺角門市隨時歡迎。
+      </p>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="ico">📍</div>
+        <h3>門市地址</h3>
+        <p>
+          {CONTACT.addressLine1}<br/>
+          {CONTACT.district}，{CONTACT.area}，{CONTACT.country}<br/>
+          <a href={`https://maps.google.com/?q=${mapQuery}`} target="_blank" rel="noopener" style="color:var(--teal)">喺地圖開啟 →</a>
+        </p>
+      </div>
+      <div class="info-card">
+        <div class="ico">💬</div>
+        <h3>WhatsApp</h3>
+        <p>
+          <a href={wa} target="_blank" rel="noopener" style="color:var(--teal);font-weight:700">{CONTACT.whatsappDisplay}</a><br/>
+          落單查詢、庫存確認、報價都可以直接問。
+        </p>
+      </div>
+      <div class="info-card">
+        <div class="ico">🕘</div>
+        <h3>營業時間</h3>
+        <p>{CONTACT.hours}</p>
+      </div>
+    </div>
+
+    <div class="map-frame">
+      <iframe
+        title="志成文具／地球儀專門店位置"
+        src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+
+    <div style="max-width:720px;margin:3rem auto 0">
+      <h2 style="font-size:1.5rem;margin-bottom:1rem">留下查詢</h2>
+      <p style="color:var(--muted);font-size:.92rem;margin-bottom:1.4rem">
+        填完表會直接開啟 WhatsApp 帶住你嘅訊息，唔使再撳一次發送。
+      </p>
+
+      <form class="form-card" id="contact-form" data-wa={CONTACT.whatsapp}>
+        <div class="form-row">
+          <label for="cf-name">稱呼 *</label>
+          <input type="text" id="cf-name" name="name" required placeholder="例如：李老師 / 陳先生" />
+        </div>
+        <div class="form-row">
+          <label for="cf-phone">聯絡電話</label>
+          <input type="tel" id="cf-phone" name="phone" placeholder="例如：9123 4567" />
+        </div>
+        <div class="form-row">
+          <label for="cf-topic">查詢類別</label>
+          <select id="cf-topic" name="topic">
+            <option>查詢地球儀產品</option>
+            <option>學校／大批訂購</option>
+            <option>禮物包裝</option>
+            <option>維修、保養與零件</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="cf-msg">想知嘅嘢 *</label>
+          <textarea id="cf-msg" name="message" required placeholder="例如：想買 10 吋中英對照地球儀，30 個，學校用，可否批發價？"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;border:none;cursor:pointer">
+          送出查詢（經 WhatsApp）
+        </button>
+        <p class="form-hint" style="margin-top:1rem">
+          提交後會跳到 WhatsApp 對話視窗，請按一下發送鍵。
+        </p>
+      </form>
+    </div>
+
+    <div style="text-align:center;margin:3rem 0 2rem">
+      <a href={wa} class="buy-wa" target="_blank" rel="noopener" style="display:inline-block">💬 直接開 WhatsApp 對話</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const get = (id: string) => (document.getElementById(id) as HTMLInputElement)?.value.trim() || '';
+      const lines = [
+        '【GlobeHK 地球儀查詢】',
+        '',
+        `稱呼：${get('cf-name')}`,
+        get('cf-phone') ? `電話：${get('cf-phone')}` : '',
+        `類別：${get('cf-topic')}`,
+        '',
+        get('cf-msg'),
+        '',
+        '（由網站查詢表送出）',
+      ].filter(Boolean);
+      window.open(
+        `https://wa.me/${form.dataset.wa}?text=${encodeURIComponent(lines.join('\n'))}`,
+        '_blank'
+      );
+    });
+  </script>
+</Base>

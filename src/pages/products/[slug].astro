@@ -1,0 +1,192 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getProducts, langLabel, sortProducts } from '../../lib/products';
+import { CONTACT, SERIES, SITE, waLink } from '../../data/site';
+import '../../styles/shop.css';
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+const all = await getProducts();
+const related = sortProducts(all.filter((p) => p.series === product.series && p.slug !== product.slug)).slice(0, 4);
+const wa = waLink(`你好，我想查詢「${product.name}」。`);
+const pageTitle = `${product.name} | ${SITE.nameZh}`;
+const desc = product.description
+  ? product.description.slice(0, 150)
+  : `${product.name} — 香港地球儀專門店。${SERIES[product.series].label}，${product.size || ''} ${langLabel(product.language)}。旺角門市現貨，歡迎查詢。`;
+---
+<Base title={pageTitle} description={desc}>
+  <div class="container">
+    <nav class="breadcrumb" aria-label="麵包屑">
+      <a href="/">首頁</a><span>›</span>
+      <a href="/products/">全部地球儀</a><span>›</span>
+      <span>{product.name}</span>
+    </nav>
+
+    <div class="pdp">
+      <!-- Gallery -->
+      <div class="pdp-gallery">
+        <div class="pdp-main-img">
+          {product.images.length
+            ? <img id="main-img" src={product.images[0]} alt={`${product.name} - ${SITE.nameZh}`} width="700" height="700" />
+            : <div class="pc-placeholder" style="font-size:5rem">🌍</div>}
+        </div>
+        {product.images.length > 1 && (
+          <div class="pdp-thumbs">
+            {product.images.map((img, i) => (
+              <button class={`pdp-thumb ${i === 0 ? 'on' : ''}`} data-img={img} aria-label={`查看圖片 ${i + 1}`}>
+                <img src={img} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Buy box -->
+      <div class="pdp-info">
+        <span class="pdp-series">{SERIES[product.series].icon} {SERIES[product.series].label}</span>
+        <h1>{product.name}</h1>
+        <p class="pdp-en">{product.nameEn}</p>
+
+        <div class="pdp-price">
+          {product.price
+            ? <><span class="cur">HK$</span><span class="amt">{product.price.toLocaleString('zh-HK')}</span></>
+            : <span class="amt" style="font-size:1.4rem">價錢請查詢</span>}
+          {product.inStock
+            ? <span class="stock">✓ 現貨</span>
+            : <span class="stock" style="background:#fdeaea;color:#b0453b">暫時缺貨</span>}
+        </div>
+
+        {product.description && <p class="pdp-desc">{product.description}</p>}
+
+        <table class="spec-table">
+          <tbody>
+            {product.size && <tr><th>尺寸</th><td>{product.size}</td></tr>}
+            <tr><th>語言標示</th><td>{langLabel(product.language)}</td></tr>
+            <tr><th>系列</th><td>{SERIES[product.series].label} — {SERIES[product.series].desc}</td></tr>
+            {product.sourceUrl && <tr><th>貨號</th><td><a href={product.sourceUrl} target="_blank" rel="noopener">CS Stationery 原始頁面 ↗</a></td></tr>}
+          </tbody>
+        </table>
+
+        {product.features.length > 0 && (
+          <>
+            <h3 style="font-size:1.05rem;margin:1.4rem 0 .5rem">特色</h3>
+            <ul class="feat-list">
+              {product.features.map((f) => <li>{f}</li>)}
+            </ul>
+          </>
+        )}
+
+        <div class="qty-row">
+          <div class="q">
+            <button id="q-minus" aria-label="減少數量">−</button>
+            <span id="q-val">1</span>
+            <button id="q-plus" aria-label="增加數量">＋</button>
+          </div>
+          <span style="font-size:.9rem;color:var(--muted)">數量</span>
+        </div>
+
+        <div class="pdp-actions">
+          <button class="add-btn" id="add-btn" data-slug={product.slug} data-name={product.name}
+            data-price={product.price ?? 0} data-image={product.images[0] ?? ''}>
+            加入查詢清單
+          </button>
+          <a href={wa} class="buy-wa" target="_blank" rel="noopener">直接 WhatsApp 查詢</a>
+        </div>
+
+        <div class="pdp-note">
+          旺角門市：{CONTACT.addressLine1}（{CONTACT.district}）<br/>
+          WhatsApp {CONTACT.whatsappDisplay} · {CONTACT.hours}<br/>
+          加入查詢清單後可一次過送出多件貨品，我們會回覆庫存、運費及到貨日期。
+        </div>
+      </div>
+    </div>
+
+    {related.length > 0 && (
+      <section style="padding:2rem 0 4rem">
+        <h2 style="font-size:1.5rem;margin-bottom:1.4rem">同系列其他地球儀</h2>
+        <div class="product-grid">
+          {related.map((r) => (
+            <article class="product-card">
+              <a href={`/products/${r.slug}/`} class="pc-media">
+                {r.images.length
+                  ? <img src={r.images[0]} alt={r.name} loading="lazy" width="400" height="400" />
+                  : <div class="pc-placeholder">🌍</div>}
+              </a>
+              <div class="pc-body">
+                <h3><a href={`/products/${r.slug}/`}>{r.name}</a></h3>
+                <div class="pc-foot">
+                  <span class="pc-price">{r.price ? `$${r.price.toLocaleString('zh-HK')}` : '查詢'}</span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+
+  <script>
+    import { addToCart } from '../../lib/cart.ts';
+
+    // gallery
+    const main = document.getElementById('main-img');
+    document.querySelectorAll<HTMLButtonElement>('.pdp-thumb').forEach((t) => {
+      t.addEventListener('click', () => {
+        if (main && t.dataset.img) main.src = t.dataset.img;
+        document.querySelectorAll('.pdp-thumb').forEach((x) => x.classList.remove('on'));
+        t.classList.add('on');
+      });
+    });
+
+    // qty
+    let qty = 1;
+    const qv = document.getElementById('q-val');
+    document.getElementById('q-minus')?.addEventListener('click', () => {
+      qty = Math.max(1, qty - 1);
+      if (qv) qv.textContent = String(qty);
+    });
+    document.getElementById('q-plus')?.addEventListener('click', () => {
+      qty = Math.min(99, qty + 1);
+      if (qv) qv.textContent = String(qty);
+    });
+
+    // add
+    const btn = document.getElementById('add-btn') as HTMLButtonElement | null;
+    btn?.addEventListener('click', () => {
+      addToCart({
+        id: btn.dataset.slug!,
+        name: btn.dataset.name!,
+        price: Number(btn.dataset.price || 0),
+        image: btn.dataset.image || undefined,
+        slug: btn.dataset.slug!,
+      }, qty);
+      btn.textContent = '✓ 已加入查詢清單';
+      btn.classList.add('added');
+      setTimeout(() => { btn.textContent = '加入查詢清單'; btn.classList.remove('added'); }, 2000);
+      document.getElementById('drawer')?.classList.add('open');
+      document.getElementById('drawer-overlay')?.classList.add('on');
+    });
+  </script>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: desc,
+    image: product.images.length ? [SITE.url + product.images[0]] : undefined,
+    sku: product.sourceUrl ? product.sourceUrl.split('/').pop() : product.slug,
+    brand: { '@type': 'Brand', name: SITE.nameZh },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'HKD',
+      price: product.price ?? undefined,
+      availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: `${SITE.url}/products/${product.slug}/`,
+      seller: { '@type': 'Organization', name: SITE.legalName },
+    },
+  })} />
+</Base>

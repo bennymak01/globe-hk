@@ -1,0 +1,89 @@
+---
+import Base from '../layouts/Base.astro';
+import { CONTACT, SITE } from '../data/site';
+import '../styles/shop.css';
+---
+<Base title={`關於我們 | ${SITE.nameZh}`} description={`關於 ${SITE.nameZh} 主理人 Jack Mak 及志成文具。1984 年創立的旺角老店，專營文具、地球儀及教學器材。`}>
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs"><a href="/">首頁</a><span>›</span>關於我們</div>
+
+    <div class="prose">
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);margin-bottom:1rem">關於我們</h1>
+
+      <p style="font-size:1.05rem;color:var(--teal);font-weight:600">
+        主理人：<strong>Jack Mak</strong>
+      </p>
+
+      <p>
+        <strong>GlobeHK（地球儀專門店）</strong>由 <strong>Jack Mak</strong> 主理，是
+        <a href={SITE.parentSite} target="_blank" rel="noopener">志成文具</a>（{SITE.legalName}）旗下嘅地球儀專門站。
+      </p>
+
+      <h2>四十載，一間旺角紙行</h2>
+      <p>
+        志成文具自 {SITE.established} 年起在旺角界限街營業，由紙品、文具、辦公用品做起，
+        慢慢成為全港學校、老師同家長信得過嘅教學文具供應商。
+        舖頭由第一代經營至今第二代，主理人 <strong>Jack Mak</strong> 由細喺舖頭幫手，
+        睇住一箱又一箱地球儀入貨、拆箱、貼標價、寫牌。
+      </p>
+      <p>
+        呢個網站係將「地球儀」呢一條線抽出嚟做深——因為愈多學校同家庭開始留意
+        地球儀嘅教學價值，同埋將地球儀放喺書房、客廳做擺設嘅需求。
+      </p>
+
+      <h2>點解值得信我們</h2>
+      <ul>
+        <li><strong>實體門市</strong> — 旺角界限街 12 號 C 地下，可以親身上手轉一轉、睇清楚印刷質地。</li>
+        <li><strong>真實庫存</strong> — 網上同架都係同一批貨，落單前會先同你確認現貨數量。</li>
+        <li><strong>老師推介</strong> — 唔同學校、不同年級嘅教學需求，我哋逐一對數過先推介。</li>
+        <li><strong>中英文標示</strong> — 大部分款式有繁體中文或中英對照，配合學校教學語言。</li>
+        <li><strong>WhatsApp 落單</strong> — 唔使填複雜表格，一句訊息就搞掂，方便學校老師同長者。</li>
+      </ul>
+
+      <h2>選購指引</h2>
+      <p>
+        我哋嘅選購邏輯好簡單：先問清楚<b>俾邊個用</b>（自己書房？小朋友？全班同學？），
+        再問<b>預算</b>同<b>想要咩功能</b>（需要語言標示？需要燈光？需要 AR 互動？）。
+        如果唔肯定，歡迎直接 WhatsApp 我哋傾下，通常幾分鐘就有答案。
+      </p>
+
+      <blockquote>
+        「地球儀唔止係一件傢俬，係一張可以喺屋企打開嘅世界地圖。」
+        <br/><span style="font-size:.85rem">— Jack Mak，主理人</span>
+      </blockquote>
+
+      <h2>聯絡</h2>
+      <p>
+        歡迎親身到訪或 WhatsApp 我哋：
+      </p>
+      <ul>
+        <li>門市：{CONTACT.addressLine1}，{CONTACT.district}，{CONTACT.area}</li>
+        <li>WhatsApp：{CONTACT.whatsappDisplay}</li>
+        <li>營業時間：{CONTACT.hours}</li>
+      </ul>
+
+      <p style="margin-top:2rem">
+        <a href="/contact/" class="btn btn-primary">聯絡我們</a>
+        <a href="/products/" class="btn btn-ghost" style="border:1.5px solid var(--navy);color:var(--navy);margin-left:.6rem">睇產品目錄</a>
+      </p>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="ico">🏪</div>
+        <h3>旺角實體店</h3>
+        <p>{CONTACT.addressLine1}<br/>{CONTACT.hours}</p>
+      </div>
+      <div class="info-card">
+        <div class="ico">📦</div>
+        <h3>全港送貨</h3>
+        <p>學校訂單可安排送貨到校，報價時一併確認運費與到貨日期。</p>
+      </div>
+      <div class="info-card">
+        <div class="ico">💬</div>
+        <h3>WhatsApp 查詢</h3>
+        <p>{CONTACT.whatsappDisplay}<br/>最快回覆，一般於營業時間內即時回。</p>
+      </div>
+    </div>
+  </div>
+</Base>

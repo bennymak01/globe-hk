@@ -1,0 +1,105 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getProducts, sortProducts, langLabel } from '../../lib/products';
+import { SERIES, SITE } from '../../data/site';
+import '../../styles/shop.css';
+
+const all = await getProducts();
+const sorted = sortProducts(all);
+const counts = {
+  all: sorted.length,
+  education: sorted.filter(p => p.series === 'education').length,
+  smart: sorted.filter(p => p.series === 'smart').length,
+  lamp: sorted.filter(p => p.series === 'lamp').length,
+  decor: sorted.filter(p => p.series === 'decor').length,
+};
+---
+<Base title={`地球儀產品目錄 | ${SITE.nameZh}`} description="香港地球儀專門店 — 學習地球儀、AR 智能互動地球儀、燈光地球儀、書房擺設款。全部現貨，旺角門市歡迎親身睇。">
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs"><a href="/">首頁</a><span>›</span>全部地球儀</div>
+
+    <div class="listing-head">
+      <div>
+        <h1 style="font-size:clamp(1.9rem,4vw,2.8rem);margin-bottom:.5rem">地球儀產品目錄</h1>
+        <p style="color:var(--muted);max-width:52ch">
+          {counts.all} 款地球儀，{SITE.legalName} 旺角實店現貨。加入查詢清單後經 WhatsApp 一過確認庫存同運費。
+        </p>
+      </div>
+      <a href="/cart/" class="btn btn-primary">查看查詢清單</a>
+    </div>
+
+    <div class="filter-bar" id="series">
+      <button class="tab active" data-series="all">全部 ({counts.all})</button>
+      {Object.entries(SERIES).map(([k, v]) => (
+        <button class="tab" data-series={k}>{v.icon} {v.label} ({counts[k]})</button>
+      ))}
+    </div>
+
+    <div class="product-grid" id="grid">
+      {sorted.map((p) => (
+        <article class="product-card reveal" data-series={p.series}>
+          <a href={`/products/${p.slug}/`} class="pc-media">
+            {p.images.length
+              ? <img src={p.images[0]} alt={`${p.name} - ${SITE.nameZh}`} loading="lazy" width="400" height="400" />
+              : <div class="pc-placeholder">🌍</div>}
+            {!p.inStock && <span class="pc-flag">暫缺</span>}
+          </a>
+          <div class="pc-body">
+            <div class="pc-series">{SERIES[p.series].icon} {SERIES[p.series].label}</div>
+            <h3><a href={`/products/${p.slug}/`}>{p.name}</a></h3>
+            <p class="pc-en">{p.nameEn}</p>
+            <div class="pc-meta">
+              {p.size && <span>📏 {p.size}</span>}
+              <span>🌐 {langLabel(p.language)}</span>
+            </div>
+            <div class="pc-foot">
+              <span class="pc-price">{p.price ? `$${p.price.toLocaleString('zh-HK')}` : '價錢查詢'}</span>
+              <button class="pc-add" data-add data-slug={p.slug} data-name={p.name}
+                data-price={p.price ?? 0} data-image={p.images[0] ?? ''} aria-label={`將 ${p.name} 加入查詢清單`}>
+                加入查詢
+              </button>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    {sorted.length === 0 && <div class="empty">暫時未有產品，請稍後再試。</div>}
+  </div>
+
+  <script>
+    import { addToCart } from '../../lib/cart.ts';
+
+    // series filter
+    const tabs = document.querySelectorAll<HTMLButtonElement>('.filter-bar .tab');
+    const cards = document.querySelectorAll<HTMLElement>('#grid .product-card');
+    tabs.forEach((t) => t.addEventListener('click', () => {
+      tabs.forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      const s = t.dataset.series;
+      cards.forEach((c) => {
+        const show = s === 'all' || c.dataset.series === s;
+        c.style.display = show ? '' : 'none';
+      });
+    }));
+
+    // add to cart
+    document.querySelectorAll<HTMLButtonElement>('[data-add]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        addToCart({
+          id: btn.dataset.slug!,
+          name: btn.dataset.name!,
+          price: Number(btn.dataset.price || 0),
+          image: btn.dataset.image || undefined,
+          slug: btn.dataset.slug!,
+        });
+        btn.textContent = '✓ 已加入';
+        btn.classList.add('added');
+        setTimeout(() => { btn.textContent = '加入查詢'; btn.classList.remove('added'); }, 1800);
+        document.getElementById('drawer')?.classList.add('open');
+        document.getElementById('drawer-overlay')?.classList.add('on');
+      });
+    });
+  </script>
+</Base>

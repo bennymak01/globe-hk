@@ -1,0 +1,136 @@
+---
+import Base from '../layouts/Base.astro';
+import { CONTACT, SITE } from '../data/site';
+import '../styles/shop.css';
+---
+<Base title={`查詢清單 | ${SITE.nameZh}`} description="你嘅地球儀查詢清單。填上聯絡資料，經 WhatsApp 一次過送出，確認庫存與運費。">
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs"><a href="/">首頁</a><span>›</span>查詢清單</div>
+
+    <div style="max-width:820px;margin:0 auto">
+      <h1 style="font-size:clamp(1.9rem,4vw,2.5rem);margin-bottom:.6rem">查詢清單</h1>
+      <p style="color:var(--muted);margin-bottom:2rem">
+        呢個清單存在你自己部機，唔會自動落單。填好下面資料按「送出」，我們會用 WhatsApp
+        同你確認庫存、運費同到貨日期。
+      </p>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:2rem;align-items:start" class="cart-layout">
+        <!-- items -->
+        <div>
+          <div id="cart-items"></div>
+          <div id="cart-empty" style="display:none;text-align:center;padding:3rem 0;color:var(--muted)">
+            <div style="font-size:3rem">🛒</div>
+            <p style="margin:.8rem 0 1.4rem">查詢清單仲係空嘅</p>
+            <a href="/products/" class="btn btn-primary">去睇地球儀</a>
+          </div>
+        </div>
+
+        <!-- form -->
+        <aside id="cart-form-wrap" style="display:none" data-wa={CONTACT.whatsapp}>
+          <div class="form-card">
+            <h3 style="font-size:1.1rem;margin-bottom:1.2rem">你的聯絡資料</h3>
+
+            <div class="form-row">
+              <label for="cn-name">稱呼 *</label>
+              <input type="text" id="cn-name" required placeholder="李老師 / 陳先生" />
+            </div>
+            <div class="form-row">
+              <label for="cn-phone">電話 / WhatsApp</label>
+              <input type="tel" id="cn-phone" placeholder="9123 4567" />
+            </div>
+            <div class="form-row">
+              <label for="cn-org">學校 / 公司（選填）</label>
+              <input type="text" id="cn-org" placeholder="如需報價或發票請填" />
+            </div>
+            <div class="form-row">
+              <label for="cn-note">備註（選填）</label>
+              <textarea id="cn-note" placeholder="例如：想要繁體中文版、10 月底前要貨、需禮物包裝…"></textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="send-wa" style="width:100%;border:none;cursor:pointer">
+              經 WhatsApp 送出查詢
+            </button>
+            <p class="form-hint" style="margin-top:.9rem">
+              按下後會開啟 WhatsApp，請再按一下發送鍵。
+            </p>
+            <p class="form-hint" style="margin-top:.6rem">
+              或者直接傳訊息到 <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noopener" style="color:var(--teal)">{CONTACT.whatsappDisplay}</a>
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getCart, cartTotal, fmtPrice, updateQty, removeFromCart, buildWaMessage } from '../lib/cart.ts';
+
+    const itemsWrap = document.getElementById('cart-items')!;
+    const emptyWrap = document.getElementById('cart-empty')!;
+    const formWrap = document.getElementById('cart-form-wrap')!;
+
+    function render() {
+      const items = getCart();
+      if (!items.length) {
+        itemsWrap.innerHTML = '';
+        itemsWrap.style.display = 'none';
+        emptyWrap.style.display = 'block';
+        formWrap.style.display = 'none';
+        return;
+      }
+      itemsWrap.style.display = 'block';
+      emptyWrap.style.display = 'none';
+      formWrap.style.display = 'block';
+
+      itemsWrap.innerHTML = `
+        <div class="form-card" style="max-width:none">
+          ${items.map((i) => `
+            <div class="drawer-item" style="padding:1rem 0">
+              <div class="di-img">${i.image ? `<img src="${i.image}" alt="${i.name}"/>` : '🌍'}</div>
+              <div class="di-info">
+                <div class="di-name"><a href="/products/${i.slug}/" style="color:inherit">${i.name}</a></div>
+                <div class="di-price">${fmtPrice(i.price)} × ${i.qty} = ${fmtPrice(i.price * i.qty)}</div>
+                <div class="di-qty">
+                  <button data-dec="${i.id}">−</button>
+                  <span>${i.qty}</span>
+                  <button data-inc="${i.id}">＋</button>
+                  <button data-rm="${i.id}" class="rm">移除</button>
+                </div>
+              </div>
+            </div>`).join('')}
+          <div class="summary-line" style="margin-top:1rem"><span>貨品數量</span><span>${items.reduce((n,i)=>n+i.qty,0)} 件</span></div>
+          <div class="summary-total"><span>估計合計</span><span>${fmtPrice(cartTotal(items))}</span></div>
+          <p class="form-hint">實際金額以確認庫存後報價為準，運費另計。</p>
+        </div>`;
+
+      itemsWrap.querySelectorAll('[data-inc]').forEach((b) => b.addEventListener('click', () => {
+        const it = getCart().find((x) => x.id === b.dataset.inc)!;
+        updateQty(b.dataset.inc!, it.qty + 1); render();
+      }));
+      itemsWrap.querySelectorAll('[data-dec]').forEach((b) => b.addEventListener('click', () => {
+        const it = getCart().find((x) => x.id === b.dataset.dec)!;
+        updateQty(b.dataset.dec!, it.qty - 1); render();
+      }));
+      itemsWrap.querySelectorAll('[data-rm]').forEach((b) => b.addEventListener('click', () => {
+        removeFromCart(b.dataset.rm!); render();
+      }));
+    }
+
+    document.getElementById('send-wa')?.addEventListener('click', () => {
+      const items = getCart();
+      if (!items.length) return;
+      const val = (id: string) => (document.getElementById(id) as HTMLInputElement)?.value.trim() || '';
+      const msg = buildWaMessage(
+        items,
+        val('cn-name'),
+        val('cn-phone'),
+        [val('cn-org') ? `學校／公司：${val('cn-org')}` : '', val('cn-note')].filter(Boolean).join('｜')
+      );
+      const wa = document.getElementById('cart-form-wrap')?.dataset.wa;
+      window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank');
+    });
+
+    addEventListener('cart:update', render);
+    render();
+  </script>
+</Base>

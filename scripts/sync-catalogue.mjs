@@ -41,8 +41,14 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
 /** Extract a price in HKD from noisy product-page text. */
 function parsePrice(text) {
   if (!text) return null;
-  const m = String(text).match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
-  return m ? Number(m[1].replace(/,/g, '')) : null;
+  const s = String(text);
+  // Prefer a "$"-prefixed amount when present.
+  const withSym = s.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+  if (withSym) return Number(withSym[1].replace(/,/g, ''));
+  // JSON-LD gives a bare numeric string ("380.00") with no currency symbol.
+  const bare = s.match(/^\s*([\d,]+(?:\.\d{1,2})?)\s*$/);
+  if (bare) return Number(bare[1].replace(/,/g, ''));
+  return null;
 }
 
 /** Pull "12吋" / "23cm" / "8 inch" style dimensions out of a title. */
@@ -249,7 +255,67 @@ async function scrapeProduct(page, url) {
       .filter(Boolean)
       .slice(0, 12);
 
-    return { title, priceText, summary, sku, stockText, features, images: [...imgs], attributes };
+    // ---- JSON-LD Product schema (authoritative for price/images/description)
+    //
+    // Two pitfalls here:
+    //  1. The DOM price selectors are unreliable — Magento renders
+    //     related-product price blocks too, and the first ".price" match is
+    //     often a *different* product (we were scraping $25 for a $380 globe).
+    //  2. The page emits MULTIPLE Product JSON-LD blocks. The first one has a
+    //     stale offer (wrong url, placeholder price). The block whose
+    //     offers.url matches the current page path is the authoritative one.
+    //     So: collect all Product blocks, then pick by URL match.
+    const ldBlocks = [];
+    for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
+      try {
+        const parsed = JSON.parse(s.textContent);
+        const candidates = Array.isArray(parsed) ? parsed : [parsed];
+        for (const c of candidates) {
+          if (!c || !c['@type']) continue;
+          const type = Array.isArray(c['@type']) ? c['@type'] : [c['@type']];
+          if (type.includes('Product') && c.offers) ldBlocks.push(c);
+        }
+      } catch (e) { /* malformed JSON block, skip */ }
+    }
+
+    const pathNow = location.pathname.replace(/\/+$/, '');
+    const offerUrl = (c) => {
+      const o = Array.isArray(c.offers) ? c.offers[0] : c.offers;
+      return o?.url ? String(o.url).replace(/\/+$/, '') : '';
+    };
+    // 1) exact path match  2) slug match  3) first with a numeric price
+    const slugNow = pathNow.split('/').pop();
+    let ld = ldBlocks.find((c) => offerUrl(c) === pathNow);
+    if (!ld) ld = ldBlocks.find((c) => offerUrl(c).endsWith(slugNow));
+    if (!ld) ld = ldBlocks.find((c) => {
+      const o = Array.isArray(c.offers) ? c.offers[0] : c.offers;
+      return o && o.price != null && Number(o.price) > 0;
+    });
+    ld = ld || null;
+
+    const ldOffer = ld?.offers
+      ? (Array.isArray(ld.offers) ? ld.offers[0] : ld.offers)
+      : null;
+    const ldPrice = ldOffer?.price ?? ldOffer?.lowPrice ?? null;
+    const ldCurrency = ldOffer?.priceCurrency ?? null;
+    const ldImages = ld?.image
+      ? (Array.isArray(ld.image) ? ld.image : [ld.image])
+      : [];
+    const ldDesc = (ld?.description || '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+
+    return {
+      title,
+      priceText,
+      ldPrice: ldPrice != null ? String(ldPrice) : null,
+      ldCurrency,
+      summary,
+      ldDesc,
+      sku: ld?.sku || sku,
+      stockText,
+      features,
+      images: [...new Set([...imgs, ...ldImages])],
+      attributes,
+    };
   });
 
   return { url, ...data };
@@ -384,20 +450,25 @@ async function main() {
 
   for (const p of products) {
     const slug = slugify(p.title) || `globe-${Date.now()}`;
-    const price = parsePrice(p.priceText);
+    // JSON-LD price wins: the DOM ".price" selector picks up related products.
+    const price = parsePrice(p.ldPrice || '') ?? parsePrice(p.priceText);
     const size = parseSize(p.title) || parseSize(p.summary);
     const series = classify(`${p.title} ${p.summary}`);
     const language = detectLanguage(p.title, p.summary);
     const inStock = p.stockText ? !/out of stock|缺貨|售罄/i.test(p.stockText) : true;
+    const description = (p.ldDesc || p.summary || '').replace(/\s+/g, ' ').trim();
 
     // SEO-friendly image basename (e.g. earth-globe-12inch-bilingual.jpg);
     // index suffix keeps multiple photos of the same product unique.
     const imgBase = seoSlug(p.title, size, series, language);
 
-    // Download images
+    // Download images — dedupe by URL so the same photo isn't saved twice.
     const localImages = [];
+    const seenImages = new Set();
     let imgIdx = 0;
-    for (const src of p.images.slice(0, 6)) {
+    for (const src of p.images.slice(0, 8)) {
+      if (!src || seenImages.has(src)) continue;
+      seenImages.add(src);
       const ext = (src.split('?')[0].split('.').pop() || 'jpg').toLowerCase();
       const safeExt = /^(jpg|jpeg|png|webp|avif)$/.test(ext) ? ext : 'jpg';
       const filename = imgIdx === 0 ? `${imgBase}.${safeExt}` : `${imgBase}-${++imgIdx}.${safeExt}`;
@@ -427,14 +498,14 @@ async function main() {
       `language: "${language}"`,
       `series: "${series}"`,
       `inStock: ${inStock}`,
-      `sourceUrl: "${p.url}"`,
+      `sourceUrl: "${yamlEscape(p.url)}"`,
       'images:',
-      localImages.map((i) => `  - "${i}"`).join('\n'),
+      localImages.length ? localImages.map((i) => `  - "${i}"`).join('\n') : '  []',
       'features:',
-      yamlList(p.features),
+      p.features.length ? yamlList(p.features) : '  []',
       '---',
       '',
-      p.summary ? p.summary.replace(/\s+/g, ' ').trim() : '',
+      description,
       '',
     ].join('\n');
 

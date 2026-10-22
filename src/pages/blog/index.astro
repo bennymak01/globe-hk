@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '../../data/site';
+import '../../styles/shop.css';
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<Base title={`選購指南與部落格 | ${SITE.nameZh}`} description="地球儀選購指南：小學常識科尺寸建議、繁中與中英對照比較、AR 評測、保養維修、擺設靈感。香港地球儀專門店。" >
+  <div class="container" style="padding-top:7rem">
+    <div class="crumbs"><a href="/">首頁</a><span>›</span>選購指南</div>
+
+    <div style="text-align:center;max-width:660px;margin:0 auto 3rem">
+      <h1 style="font-size:clamp(1.9rem,4vw,2.6rem);margin-bottom:.8rem">選購指南</h1>
+      <p style="color:var(--muted)">
+        寫俾老師、家長同想買地球儀嘅人睇——尺寸點揀、語言點分、功能有咩分別、點樣保養。
+      </p>
+    </div>
+
+    {posts.length === 0 && <div class="empty">文章陸續更新中，敬請期待。</div>}
+
+    <div class="post-grid">
+      {posts.map((p) => (
+        <a class="post-card" href={`/blog/${p.id.replace(/\.md$/, '')}/`}>
+          <div class="pc-img">{p.data.icon || '🌍'}</div>
+          <div class="pc-body">
+            <div class="pc-date">
+              {p.data.date.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {p.data.category && <span class="tag" style="margin-left:.5rem">{p.data.category}</span>}
+            </div>
+            <h3>{p.data.title}</h3>
+            <p>{p.data.excerpt}</p>
+            <span class="pc-link">閱讀全文 <i>→</i></span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</Base>
