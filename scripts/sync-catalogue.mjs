@@ -84,6 +84,37 @@ function slugify(text) {
     .slice(0, 80);
 }
 
+/**
+ * SEO-friendly ASCII slug for image filenames (Google Images reads these).
+ * Derived from what buyers actually search: size, series, language, "globe".
+ * e.g. "繁體中文地球儀 8寸 世界地圖 World Globe (中英文)" → "earth-globe-8inch-bilingual"
+ */
+function seoSlug(title = '', size = '', series = '', language = '') {
+  const t = String(title);
+  const parts = ['earth-globe'];
+
+  const inch = t.match(/(\d{1,2}(?:\.\d)?)\s*(?:吋|"|inch|英寸)/) || t.match(/(\d{1,2})\s*寸/);
+  const cm = t.match(/(\d{1,2}(?:\.\d)?)\s*(?:cm|CM|厘米)/);
+  if (inch) parts.push(`${inch[1]}inch`);
+  else if (cm) parts.push(`${cm[1]}cm`);
+
+  const seriesEn = { ar: 'ar-smart', lamp: 'illuminated', wood: 'wooden', decor: 'desk-decor', education: 'education' };
+  if (seriesEn[series]) parts.push(seriesEn[series]);
+
+  if (language === 'both') parts.push('bilingual');
+  else if (language === 'zh-Hant') parts.push('traditional-chinese');
+  else if (language === 'en') parts.push('english');
+
+  // keep any ASCII words already in the title (e.g. "world map", "night light")
+  const ascii = t.toLowerCase().match(/[a-z][a-z0-9]{2,}/g) || [];
+  for (const w of ascii) {
+    if (!['globe', 'world', 'the', 'and', 'with', 'inch', 'cm'].includes(w) && !parts.includes(w) && parts.length < 6) {
+      parts.push(w);
+    }
+  }
+  return parts.join('-');
+}
+
 /** Escape a string for use inside YAML frontmatter double quotes. */
 function yamlEscape(s) {
   return String(s ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
@@ -359,13 +390,17 @@ async function main() {
     const language = detectLanguage(p.title, p.summary);
     const inStock = p.stockText ? !/out of stock|缺貨|售罄/i.test(p.stockText) : true;
 
+    // SEO-friendly image basename (e.g. earth-globe-12inch-bilingual.jpg);
+    // index suffix keeps multiple photos of the same product unique.
+    const imgBase = seoSlug(p.title, size, series, language);
+
     // Download images
     const localImages = [];
     let imgIdx = 0;
     for (const src of p.images.slice(0, 6)) {
       const ext = (src.split('?')[0].split('.').pop() || 'jpg').toLowerCase();
       const safeExt = /^(jpg|jpeg|png|webp|avif)$/.test(ext) ? ext : 'jpg';
-      const filename = `${slug}-${++imgIdx}.${safeExt}`;
+      const filename = imgIdx === 0 ? `${imgBase}.${safeExt}` : `${imgBase}-${++imgIdx}.${safeExt}`;
       const dest = path.join(OUT_DIR, filename);
 
       let saved = false;

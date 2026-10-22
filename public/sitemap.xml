@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static fallback sitemap for globe.hk.
+  NOTE: when the Astro app (src/pages) is scaffolded, replace this file with
+  @astrojs/sitemap (astro.config.mjs: site: 'https://globe.hk', sitemap()) which
+  auto-generates /sitemap-index.xml from real pages. Product URLs below follow
+  the slugs produced by scripts/sync-catalogue.mjs — update after first sync.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://globe.hk/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://globe.hk/products/</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://globe.hk/guides/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globe.hk/about/</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://globe.hk/contact/</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>

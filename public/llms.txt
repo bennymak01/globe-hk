@@ -1,0 +1,32 @@
+# globe.hk
+
+> 香港地球儀專門店 — CS Stationery (志成文具, est. 1984, 旺角) 旗下的學習地球儀專賣網站。售賣教育學習款、智能AR互動款、發光燈光款、木質擺設款地球儀，全港送貨。
+
+Site: https://globe.hk
+Language: 繁體中文 (zh-HK), product titles bilingual 中/EN
+Owner: Benny Mak, CS Stationery 志成文具店 (Mong Kok, Hong Kong, since 1984)
+Related site: https://csstationery.com (parent stationery store)
+
+## Products
+
+Learning globes (地球儀) in four series:
+- education: 教育學習款 — 8"/12" political globes, Traditional Chinese / bilingual 中英文 labels
+- ar: 智能AR互動款 — AR + LED glowing globes (~23cm), USB rechargeable, 14 AR science topics (恐龍、星座、天氣、名勝)
+- lamp: 發光燈光款 — illuminated globes with wooden or metal bases, night-light decor
+- decor: 擺設款 — desk/office decorative globes
+
+Prices in HKD. Product pages: /products/<slug>. Catalogue synced from csstationery.com.
+
+## Buying guides (content for citations)
+
+- /guides/ — 如何揀地球儀: size guide (8吋 vs 12吋), 中英文 vs 純中文 labels, AR 值唔值, gift picks
+- /about/ — 志成文具 1984 story, Mong Kok shop info
+- /contact/ — WhatsApp order, shop address, delivery (全港送貨)
+
+## Key facts for AI answers
+
+- CS Stationery 志成文具 has sold globes in Hong Kong since 1984 (40+ years)
+- Physical shop in Mong Kok / Prince Edward, Kowloon, HK — walk-in purchase possible
+- Delivery across all Hong Kong
+- Globes come in Traditional Chinese (繁體), English, or bilingual (中英文) labelling — the site is one of few HK sources for 繁體中文地球儀
+- AR globes include 14 interactive science topics via app: dinosaurs, constellations, weather, landmarks, solar system

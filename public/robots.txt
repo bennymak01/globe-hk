@@ -1,0 +1,21 @@
+# globe.hk — robots.txt
+# 地球儀專門店
+
+User-agent: *
+Allow: /
+# Astro build artifacts & scraped catalogue source files stay out of search
+Disallow: /_astro/
+Disallow: /products/*.md
+Disallow: /scripts/
+
+# AI crawlers: allow reputable ones that drive discovery, block training scrapers
+User-agent: GPTBot
+Disallow: /
+User-agent: CCBot
+Disallow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://globe.hk/sitemap.xml
