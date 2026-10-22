@@ -1,17 +1,23 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// https://globe-hk.vercel.app
+// Live URL: https://globe-hk.vercel.app
 export default defineConfig({
   site: 'https://globe-hk.vercel.app',
-  // Vercel's cleanUrls + GitHub Pages both expect FLAT files (about.html),
-  // not directory indexes (about/index.html). Astro's default 'directory'
-  // format is what made every HTML route 404 on Vercel.
+
+  // 'directory' writes about/index.html — resolved natively by BOTH
+  // GitHub Pages and Vercel's static serving.
+  //
+  // Do NOT combine build.format:'file' with vercel.json cleanUrls:true —
+  // Vercel rewrites /index.html -> / with no file to serve at /, so the
+  // homepage 404s while every other route works. cleanUrls:true also strips
+  // the directory index of /about/ and 404s it.
   build: {
-    format: 'file',
+    format: 'directory',
   },
-  // Match the vercel.json trailingSlash setting so canonical URLs and
-  // internal links agree with what the host actually serves.
-  trailingSlash: 'never',
+
+  // Must match the trailing-slash style the host actually serves.
+  trailingSlash: 'always',
+
   integrations: [sitemap()],
 });
