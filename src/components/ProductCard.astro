@@ -1,0 +1,26 @@
+---
+interface Props { p: any }
+const { p } = Astro.props;
+const fmt = (n: number) => (n ? `$${n}` : '查詢');
+const seriesLabel: Record<string, string> = { education: '學習教育', smart: 'AR 智能', decor: '燈光擺設' };
+const badgeText: Record<string, string> = { education: '熱賣', smart: '新上市', decor: '人氣' };
+const hasPhoto = p.images && p.images.length > 0;
+---
+<a class="card" data-series={p.series} href={p.sourceUrl || '#'}>
+  <div class="card-img">
+    <span class="badge">{badgeText[p.series] || '精選'}</span>
+    {hasPhoto ? <img src={p.images[0]} alt={p.name} loading="lazy" /> : <div class="mini-globe"></div>}
+  </div>
+  <div class="card-body">
+    <div class="series-tag">{seriesLabel[p.series] || p.series}</div>
+    <h3>{p.name}</h3>
+    <div class="price">{fmt(p.priceHKD)} <small>HKD{p.size ? ` ・ ${p.size}` : ''}</small></div>
+    <div class="feat">
+      {(p.features || []).slice(0, 3).map((f: string) => <span>{f}</span>)}
+    </div>
+    <div class="card-cta">
+      <span class="go">查看詳情 <i>→</i></span>
+      <span class="price" style="font-size:.85rem">{p.inStock ? '現貨' : '預訂'}</span>
+    </div>
+  </div>
+</a>

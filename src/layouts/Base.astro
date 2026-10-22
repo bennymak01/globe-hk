@@ -1,0 +1,63 @@
+---
+import '../styles/global.css';
+interface Props { title: string; description?: string }
+const { title, description = '香港地球儀專門店 — 學習地球儀、AR智能地球儀、燈光擺設款。志成文具 1984・旺角實店・全港送貨。' } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <slot />
+    <script>
+      // nav shrink
+      const nav = document.getElementById('nav');
+      addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 40));
+
+      // globe parallax tilt toward mouse (lerped)
+      const globe = document.getElementById('globe');
+      if (globe) {
+        let tx = 0, ty = 0, cx = 0, cy = 0;
+        addEventListener('mousemove', (e) => {
+          tx = (e.clientX / innerWidth - 0.5) * 18;
+          ty = (e.clientY / innerHeight - 0.5) * -14;
+        });
+        (function loop() {
+          cx += (tx - cx) * 0.07; cy += (ty - cy) * 0.07;
+          globe.style.transform = `rotateY(${cx}deg) rotateX(${cy}deg)`;
+          requestAnimationFrame(loop);
+        })();
+      }
+
+      // reveal on scroll
+      const io = new IntersectionObserver(
+        (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('in')),
+        { threshold: 0.12 }
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+      // series tabs filter
+      const tabs = document.querySelectorAll<HTMLButtonElement>('.tab');
+      const cards = document.querySelectorAll<HTMLElement>('.card[data-series]');
+      tabs.forEach((t) =>
+        t.addEventListener('click', () => {
+          tabs.forEach((x) => x.classList.remove('active'));
+          t.classList.add('active');
+          const f = t.dataset.filter || 'all';
+          cards.forEach((c) => {
+            c.style.display = f === 'all' || c.dataset.series === f ? '' : 'none';
+          });
+        })
+      );
+    </script>
+  </body>
+</html>
