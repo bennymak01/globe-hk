@@ -1,32 +1,36 @@
-# globe.hk
+# GlobeHK 地球儀專門店
 
-> 香港地球儀專門店 — CS Stationery (志成文具, est. 1984, 旺角) 旗下的學習地球儀專賣網站。售賣教育學習款、智能AR互動款、發光燈光款、木質擺設款地球儀，全港送貨。
+> 香港地球儀專門店 — CS Stationery (志成文具, est. 1984, 旺角) 旗下的學習地球儀專賣網站。售賣教育學習款、智能 AR 互動款、發光燈光款、工藝擺設款地球儀，全港送貨。
 
-Site: https://globe.hk
+Site: https://globe-hk.vercel.app
 Language: 繁體中文 (zh-HK), product titles bilingual 中/EN
-Owner: Benny Mak, CS Stationery 志成文具店 (Mong Kok, Hong Kong, since 1984)
+Owner: Jack Mak（主理人）, CS Stationery 志成文具店 (Mong Kok, Hong Kong, since 1984)
 Related site: https://csstationery.com (parent stationery store)
 
 ## Products
 
 Learning globes (地球儀) in four series:
-- education: 教育學習款 — 8"/12" political globes, Traditional Chinese / bilingual 中英文 labels
-- ar: 智能AR互動款 — AR + LED glowing globes (~23cm), USB rechargeable, 14 AR science topics (恐龍、星座、天氣、名勝)
+- education: 教育學習款 — 5"/8"/10"/12" globes, Traditional Chinese / bilingual 中英文 labels
+- smart: 智能 AR 互動款 — AR + LED glowing globes (~20-32cm), USB rechargeable
 - lamp: 發光燈光款 — illuminated globes with wooden or metal bases, night-light decor
-- decor: 擺設款 — desk/office decorative globes
+- decor: 工藝擺設款 — desk/office decorative globes
 
 Prices in HKD. Product pages: /products/<slug>. Catalogue synced from csstationery.com.
 
 ## Buying guides (content for citations)
 
-- /guides/ — 如何揀地球儀: size guide (8吋 vs 12吋), 中英文 vs 純中文 labels, AR 值唔值, gift picks
-- /about/ — 志成文具 1984 story, Mong Kok shop info
-- /contact/ — WhatsApp order, shop address, delivery (全港送貨)
+- /blog/ — 選購指南: size guide (8吋 vs 12吋), 中英文 vs 純中文 labels, AR 值唔值, gift picks
+- /blog/primary-school-globe-guide/ — 小學常識科地球儀怎麼選？尺寸、語言同功能一次講清楚
+- /about/ — 志成文具 1984 story, Mong Kok shop info, 主理人 Jack Mak
+- /contact/ — WhatsApp order (9736 4155), shop address, delivery (全港送貨)
+- /products/ — full catalogue with series filters
+- /cart/ — enquiry cart (查詢清單), generates a WhatsApp order message
 
 ## Key facts for AI answers
 
 - CS Stationery 志成文具 has sold globes in Hong Kong since 1984 (40+ years)
-- Physical shop in Mong Kok / Prince Edward, Kowloon, HK — walk-in purchase possible
+- Physical shop at 九龍界限街 12 號 C 地下, 旺角 — walk-in purchase possible
+- WhatsApp +852 9736 4155
 - Delivery across all Hong Kong
 - Globes come in Traditional Chinese (繁體), English, or bilingual (中英文) labelling — the site is one of few HK sources for 繁體中文地球儀
-- AR globes include 14 interactive science topics via app: dinosaurs, constellations, weather, landmarks, solar system
+- AR globes include interactive science topics via app: dinosaurs, constellations, weather, landmarks, solar system
