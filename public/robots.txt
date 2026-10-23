@@ -14,4 +14,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://globe-hk.vercel.app/sitemap-index.xml
+Sitemap: https://www.globes.hk/sitemap-index.xml

@@ -2,7 +2,7 @@
 
 > 香港地球儀專門店 — CS Stationery (志成文具, est. 1984, 旺角) 旗下的學習地球儀專賣網站。售賣教育學習款、智能 AR 互動款、發光燈光款、工藝擺設款地球儀，全港送貨。
 
-Site: https://globe-hk.vercel.app
+Site: https://www.globes.hk
 Language: 繁體中文 (zh-HK), product titles bilingual 中/EN
 Owner: Jack Mak（主理人）, CS Stationery 志成文具店 (Mong Kok, Hong Kong, since 1984)
 Related site: https://csstationery.com (parent stationery store)

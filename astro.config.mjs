@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Live URL: https://globe-hk.vercel.app
+// Live URL: https://www.globes.hk
 export default defineConfig({
-  site: 'https://globe-hk.vercel.app',
+  site: 'https://www.globes.hk',
 
   // 'directory' writes about/index.html — resolved natively by BOTH
   // GitHub Pages and Vercel's static serving.
