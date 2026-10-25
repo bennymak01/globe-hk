@@ -9,8 +9,10 @@ language: "en"
 series: "education"
 inStock: true
 sourceUrl: "https://csstationery.com/world-globe/golden-globe-10cm-small-learning-globe-retro-light-brown-english-version"
-images: []
-features: []
+images:
+  []
+features:
+  []
 ---
 
 

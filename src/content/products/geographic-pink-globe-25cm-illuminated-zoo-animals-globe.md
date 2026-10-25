@@ -13,7 +13,8 @@ images:
   - "/products/earth-globe-25cm-education-geographic-pink-illuminated.jpg"
   - "/products/earth-globe-25cm-education-geographic-pink-illuminated.jpg"
   - "/products/earth-globe-25cm-education-geographic-pink-illuminated.jpg"
-features: []
+features:
+  []
 ---
 
 

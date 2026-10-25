@@ -12,7 +12,8 @@ sourceUrl: "https://csstationery.com/world-globe/stellanova-globe-5-inch"
 images:
   - "/products/earth-globe-5inch-education-stellanova.jpg"
   - "/products/earth-globe-5inch-education-stellanova.jpg"
-features: []
+features:
+  []
 ---
 
 

@@ -13,7 +13,8 @@ images:
   - "/products/earth-globe-14cm-education-music-box-rotation.jpg"
   - "/products/earth-globe-14cm-education-music-box-rotation.jpg"
   - "/products/earth-globe-14cm-education-music-box-rotation.jpg"
-features: []
+features:
+  []
 ---
 
 

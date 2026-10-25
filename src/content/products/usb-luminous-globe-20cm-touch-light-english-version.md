@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-20cm-education-english-usb-luminous.jpg"
   - "/products/earth-globe-20cm-education-english-usb-luminous.jpg"
   - "/products/earth-globe-20cm-education-english-usb-luminous.jpg"
-features: []
+features:
+  []
 ---
 
 

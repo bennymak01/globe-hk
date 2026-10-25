@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-32cm-education-english-luminous-interactive.jpg"
   - "/products/earth-globe-32cm-education-english-luminous-interactive.jpg"
   - "/products/earth-globe-32cm-education-english-luminous-interactive.jpg"
-features: []
+features:
+  []
 ---
 
 

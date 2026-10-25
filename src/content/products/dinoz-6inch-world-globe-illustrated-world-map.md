@@ -14,7 +14,8 @@ images:
   - "/products/earth-globe-6inch-education-dinoz-illustrated-map.jpg"
   - "/products/earth-globe-6inch-education-dinoz-illustrated-map.jpg"
   - "/products/earth-globe-6inch-education-dinoz-illustrated-map.jpg"
-features: []
+features:
+  []
 ---
 
 

@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-23cm-ar-smart-english-augmented-reality.jpg"
   - "/products/earth-globe-23cm-ar-smart-english-augmented-reality.jpg"
   - "/products/earth-globe-23cm-ar-smart-english-augmented-reality.jpg"
-features: []
+features:
+  []
 ---
 
 

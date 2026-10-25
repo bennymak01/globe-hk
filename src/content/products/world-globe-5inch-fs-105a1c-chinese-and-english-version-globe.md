@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-5inch-education-english-a1c-chinese.jpg"
   - "/products/earth-globe-5inch-education-english-a1c-chinese.jpg"
   - "/products/earth-globe-5inch-education-english-a1c-chinese.jpg"
-features: []
+features:
+  []
 ---
 
 

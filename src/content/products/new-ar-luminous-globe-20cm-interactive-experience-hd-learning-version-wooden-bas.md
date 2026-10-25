@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-20cm-education-english-new-luminous.jpg"
   - "/products/earth-globe-20cm-education-english-new-luminous.jpg"
   - "/products/earth-globe-20cm-education-english-new-luminous.jpg"
-features: []
+features:
+  []
 ---
 
 

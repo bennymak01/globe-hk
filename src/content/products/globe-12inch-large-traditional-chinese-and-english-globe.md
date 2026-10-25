@@ -13,7 +13,8 @@ images:
   - "/products/earth-globe-12inch-education-english-large-traditional.jpg"
   - "/products/earth-globe-12inch-education-english-large-traditional.jpg"
   - "/products/earth-globe-12inch-education-english-large-traditional.jpg"
-features: []
+features:
+  []
 ---
 
 

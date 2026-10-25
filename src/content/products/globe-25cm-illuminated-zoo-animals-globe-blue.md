@@ -13,7 +13,8 @@ images:
   - "/products/earth-globe-25cm-education-illuminated-zoo-animals.jpg"
   - "/products/earth-globe-25cm-education-illuminated-zoo-animals.jpg"
   - "/products/earth-globe-25cm-education-illuminated-zoo-animals.jpg"
-features: []
+features:
+  []
 ---
 
 

@@ -17,7 +17,8 @@ images:
   - "/products/earth-globe-14.2cm-education-diy-blank-learning.jpg"
   - "/products/earth-globe-14.2cm-education-diy-blank-learning.jpeg"
   - "/products/earth-globe-14.2cm-education-diy-blank-learning.jpg"
-features: []
+features:
+  []
 ---
 
 

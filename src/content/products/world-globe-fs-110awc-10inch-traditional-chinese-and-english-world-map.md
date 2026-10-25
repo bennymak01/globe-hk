@@ -14,7 +14,8 @@ images:
   - "/products/earth-globe-10inch-education-english-awc-traditional.jpg"
   - "/products/earth-globe-10inch-education-english-awc-traditional.jpg"
   - "/products/earth-globe-10inch-education-english-awc-traditional.jpg"
-features: []
+features:
+  []
 ---
 
 

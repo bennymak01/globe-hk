@@ -18,7 +18,8 @@ images:
   - "/products/earth-globe-8inch-education-english-traditional-chinese.jpg"
   - "/products/earth-globe-8inch-education-english-traditional-chinese.jpg"
   - "/products/earth-globe-8inch-education-english-traditional-chinese.jpg"
-features: []
+features:
+  []
 ---
 
 
